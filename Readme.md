@@ -47,4 +47,4 @@ $ git clone git@github.com:liip/LiipRegistryAdaptor.git
 
 ### Optional
 
-- Elastica (https://github.com/ruflin/elastica)
+- [Elastica](https://github.com/ruflin/elastica)
