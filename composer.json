@@ -1,0 +1,39 @@
+{
+    "name": "liip/registryadaptor",
+    "description": "This library extension provides a set of adaptors to the LiipDrupalRegistryModule.",
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "type": "library",
+    "keywords": [ "registry", "ood", "software quality", "loose coupling", "elasticsearch" ],
+    "authors": [
+        {
+            "name": "Bastian Feder",
+            "email": "bastian.feder@liip.ch",
+            "role": "maintainer"
+        },
+        {
+            "name": "Patrick Jezek",
+            "email": "patrick.jezek@liip.ch",
+            "role": "maintainer"
+        }
+    ],
+
+    "config": {
+        "github-protocols": ["https", "http", "git"]
+    },
+
+    "autoload": {
+        "psr-0": {
+           "Liip\\Registry\\Adaptor": "src/"
+        }
+    },
+
+    "require": {
+        "php": ">=5.3.8,<5.4",
+        "beberlei/assert": "dev-master",
+        "ruflin/elastica": "0.20.5.0.RC1"
+    },
+    "require-dev": {
+        "lapistano/proxy-object": "dev-master"
+    }
+}

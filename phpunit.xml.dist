@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit
+        bootstrap="tests/bootstrap.php"
+        strict="true"
+        stopOnError="true"
+        color="true"
+        forceCoversAnnotation="true"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+        >
+
+    <testsuites>
+        <testsuite name="Liip Registry Adaptor Test Suite">
+            <directory suffix="Test.php">./tests/</directory>
+        </testsuite>
+    </testsuites>
+
+    <logging>
+        <log type="coverage-html" target="build/coverage" title="Liip Registry Adaptor"
+             charset="UTF-8" yui="true" highlight="true"/>
+    </logging>
+
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory>.</directory>
+            <exclude>
+                <directory>tests</directory>
+                <directory>build</directory>
+                <directory>vendor</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+
+</phpunit>
