@@ -420,10 +420,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
      */
     public function testExtractData($expected, $value)
     {
-        $registry = $this->getProxyBuilder('\\Liip\\Registry\\Adaptor\\Lucene\\ElasticaAdaptor')
-            ->setConstructorArgs(array(new NormalizeDecorator()))
-            ->setMethods(array('extractData'))
-            ->getProxy();
+        $registry = new ElasticaAdaptor(new NormalizeDecorator());
 
         $this->assertEquals($expected, $registry->extractData($value));
     }
