@@ -198,11 +198,11 @@ class ElasticaAdaptor implements AdaptorInterface
      *
      * @return array
      */
-    protected function extractData(array $data)
+    public function extractData(array $data)
     {
         $converted = array();
 
-        foreach($data as $value) {
+        foreach ($data as $value) {
 
             if ($value instanceof Result) {
 
