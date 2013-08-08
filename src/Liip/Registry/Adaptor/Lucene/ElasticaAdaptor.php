@@ -49,23 +49,39 @@ class ElasticaAdaptor implements AdaptorInterface
      * @param string $identifier
      * @param string $typeName
      *
-     * @throws AdaptorException
+     * @throws \LogicException
+     * @throws \Liip\Registry\Adaptor\AdaptorException
      * @return \Elastica\Document
      */
     public function registerDocument($indexName, $document, $identifier = '', $typeName = '')
     {
-        $index = $this->getIndex($indexName);
-        $type = $index->getType(
-            empty($typeName) ? $this->typeName : $typeName
-        );
-
         if (!$document instanceof Document) {
+
+            if (is_object($document)) {
+
+                if (!method_exists($document, 'toArray')) {
+
+                    throw new \LogicException(
+                        'The given object representing a document value have to implement a toArray() method in order '.
+                        'to be able to store it in elasticsearch.'
+                    );
+                }
+
+                $document = $document->toArray();
+            }
+
             $document = $this->decorator->normalizeValue($document);
 
             Assertion::notEmpty($document, 'The document data may not be empty.');
 
             $document = new Document($identifier, $document);
         }
+
+
+        $index = $this->getIndex($indexName);
+        $type = $index->getType(
+            empty($typeName) ? $this->typeName : $typeName
+        );
 
         try {
 

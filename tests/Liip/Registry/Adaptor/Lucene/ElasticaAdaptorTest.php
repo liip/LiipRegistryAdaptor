@@ -153,6 +153,22 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
     }
 
     /**
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::registerDocument
+     */
+    public function testRegisterDocumentExpectingLogicException()
+    {
+        $adaptor = $this->getProxyBuilder('\\Liip\\Registry\\Adaptor\\Lucene\\ElasticaAdaptor')
+            ->disableOriginalConstructor()
+            ->getProxy();
+
+        $this->setExpectedException('\Liip\Registry\Adaptor\AdaptorException');
+
+        $this->setExpectedException('\LogicException');
+
+        $adaptor->registerDocument(self::$indexName, new \stdClass(), 'myDocument');
+    }
+
+    /**
      * @dataProvider registerDocumentDataprovider
      * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::registerDocument
      */
