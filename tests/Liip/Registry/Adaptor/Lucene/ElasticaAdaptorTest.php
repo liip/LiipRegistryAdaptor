@@ -154,6 +154,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
     /**
      * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::registerDocument
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::trancodeDataToDocument
      */
     public function testRegisterDocumentExpectingLogicException()
     {

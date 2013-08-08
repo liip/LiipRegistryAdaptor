@@ -55,36 +55,13 @@ class ElasticaAdaptor implements AdaptorInterface
      */
     public function registerDocument($indexName, $document, $identifier = '', $typeName = '')
     {
-        if (!$document instanceof Document) {
-
-            if (is_object($document)) {
-
-                if (!method_exists($document, 'toArray')) {
-
-                    throw new \LogicException(
-                        'The given object representing a document value have to implement a toArray() method in order '.
-                        'to be able to store it in elasticsearch.'
-                    );
-                }
-
-                $document = $document->toArray();
-            }
-
-            $document = $this->decorator->normalizeValue($document);
-
-            Assertion::notEmpty($document, 'The document data may not be empty.');
-
-            $document = new Document($identifier, $document);
-        }
-
-
         $index = $this->getIndex($indexName);
         $type = $index->getType(
             empty($typeName) ? $this->typeName : $typeName
         );
 
         try {
-
+            $document = $this->trancodeDataToDocument($document, $identifier);
             $type->addDocuments(array($document));
             $index->refresh();
 
@@ -304,5 +281,42 @@ class ElasticaAdaptor implements AdaptorInterface
         }
 
         return $this->client;
+    }
+
+    /**
+     * Makes sure that the given data is an Elastica\Document
+     *
+     * @param mixed $document
+     * @param string $identifier
+     *
+     * @return Document
+     * @throws \LogicException
+     */
+    protected function trancodeDataToDocument($document, $identifier)
+    {
+        if (!$document instanceof Document) {
+
+            if (is_object($document)) {
+
+                if (!method_exists($document, 'toArray')) {
+
+                    throw new \LogicException(
+                        'The given object representing a document value have to implement a toArray() method in order ' .
+                        'to be able to store it in elasticsearch.'
+                    );
+                }
+
+                $document = $document->toArray();
+            }
+
+            $document = $this->decorator->normalizeValue($document);
+
+            Assertion::notEmpty($document, 'The document data may not be empty.');
+
+            $document = new Document($identifier, $document);
+
+        }
+
+        return $document;
     }
 }
