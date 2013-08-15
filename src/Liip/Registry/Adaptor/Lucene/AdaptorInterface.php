@@ -62,11 +62,18 @@ interface AdaptorInterface
     /**
      * Provides an elasticsearch index to attach documents to.
      *
-     * @param string $indexName Name of the lucene index
+     * @param string $indexName   Name of the lucene index
+     * @param array $indexOptions Set of options to be used to create an index
+     * @param bool|array $specials
+     *     if »bool« it deletes index first if already exists (default = false).
+     *     if »array« it should b an associative array of options (option=>value).
+     *     See linked web page.
      *
      * @return object Representation of a lucene index
+     *
+     * @link http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index.html
      */
-    public function getIndex($indexName);
+    public function getIndex($indexName, array $indexOptions = array(), $specials = null);
 
     /**
      * Deletes the named index from the cluster.
@@ -77,7 +84,6 @@ interface AdaptorInterface
 
     /**
      * Provides an Lucene client.
-     *
      * @return object Representation of a client handling requests to lucene.
      */
     public function getClient();

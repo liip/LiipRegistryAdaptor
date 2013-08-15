@@ -228,11 +228,18 @@ class ElasticaAdaptor implements AdaptorInterface
     /**
      * Provides an elasticsearch index to attach documents to.
      *
-     * @param string $indexName
+     * @param string $indexName   Name of the lucene index
+     * @param array $indexOptions Set of options to be used to create an index
+     * @param bool|array $specials
+     *     if »bool« it deletes index first if already exists (default = false).
+     *     if »array« it should b an associative array of options (option=>value).
+     *     See linked web page.
      *
-     * @return \Elastica\Index
+     * @return \Elastica|Index
+     *
+     * @link http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index.html
      */
-    public function getIndex($indexName)
+    public function getIndex($indexName, array $indexOptions = array(), $specials = null)
     {
         $indexName = strtolower($indexName);
 
@@ -244,10 +251,8 @@ class ElasticaAdaptor implements AdaptorInterface
             if (!$this->indexes[$indexName]->exists()) {
 
                 $this->indexes[$indexName]->create(
-                    array(
-                        'number_of_shards'   => 5,
-                        'number_of_replicas' => 1,
-                    )
+                    $this->mergeDefaultOptions($indexOptions),
+                    $specials
                 );
             }
         }
@@ -318,5 +323,24 @@ class ElasticaAdaptor implements AdaptorInterface
         }
 
         return $document;
+    }
+
+    /**
+     * Merges a set of default index creation options to the set of defined options.
+     *
+     * Will only set the default options if not already defined by the passed optionset.
+     *
+     * @param array $options
+     *
+     * @return array
+     */
+    protected function mergeDefaultOptions(array $options = array())
+    {
+        $defaultOptions = array(
+            'number_of_shards'   => 5,
+            'number_of_replicas' => 1,
+        );
+
+        return array_merge(array(), $defaultOptions, $options);
     }
 }
