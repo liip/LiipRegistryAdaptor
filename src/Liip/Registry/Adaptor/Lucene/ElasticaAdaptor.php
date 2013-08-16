@@ -328,7 +328,7 @@ class ElasticaAdaptor implements AdaptorInterface
     /**
      * Merges a set of default index creation options to the set of defined options.
      *
-     * Will only set the default options if not already defined by the passed optionset.
+     * Will only set the default options if not already defined by the passed option    set.
      *
      * @param array $options
      *
