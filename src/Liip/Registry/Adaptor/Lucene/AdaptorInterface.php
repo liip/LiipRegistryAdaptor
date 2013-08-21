@@ -87,4 +87,17 @@ interface AdaptorInterface
      * @return object Representation of a client handling requests to lucene.
      */
     public function getClient();
+
+    /**
+     * Reveals the currently set index type name.
+     * @return string
+     */
+    public function getIndexType();
+
+    /**
+     * Defines the name of the default index type;
+     *
+     * @param string $typeName
+     */
+    public function setIndexType($typeName);
 }

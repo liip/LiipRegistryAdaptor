@@ -66,163 +66,10 @@ class ElasticaAdaptor implements AdaptorInterface
             $index->refresh();
 
         } catch (BulkResponseException $e) {
-             throw new AdaptorException($e->getMessage(), $e->getCode(), $e);
+            throw new AdaptorException($e->getMessage(), $e->getCode(), $e);
         }
 
         return $document;
-    }
-
-    /**
-     * Removes a document from the index.
-     *
-     * @param array $ids
-     * @param string $index
-     * @param string $type
-     */
-    public function removeDocuments(array $ids, $index, $type = '')
-    {
-        if (empty($type)) {
-            $type = $this->typeName;
-        }
-
-        $client = $this->getClient();
-        $client->deleteIds($ids, $index, $type);
-    }
-
-    /**
-     * Updates a elsaticsearch document.
-     *
-     * @param  integer|string $id document id
-     * @param  mixed $data raw data for request body
-     * @param  string $indexName   index to update
-     * @param  string $typeName    type of index to update
-     *
-     * @throws AdaptorException in case something when wrong while sending the request to elasticsearch.
-     * @return \Elastica\Document
-     *
-     * @link http://www.elasticsearch.org/guide/reference/api/update.html
-     */
-    public function updateDocument($id, $data, $indexName, $typeName = '')
-    {
-        $index = $this->getIndex($indexName);
-        $client = $index->getClient();
-        $type = $index->getType(
-            empty($typeName) ? $this->typeName : $typeName
-        );
-
-        // data array needs to have the key 'doc'
-        $rawData = array(
-            'doc' => $this->decorator->normalizeValue($data)
-        );
-
-        $response = $client->updateDocument(
-            $id,
-            $rawData,
-            $index->getName(),
-            $type->getName()
-        );
-
-        if ($response->hasError()) {
-
-            $error = $this->normalizeError($response->getError());
-
-            throw new AdaptorException(
-                $error->getMessage(),
-                $error->getCode(),
-                $error
-            );
-        }
-
-        $type->getIndex()->refresh();
-
-        return $type->getDocument($id);
-    }
-
-    /**
-     * Fetches the requested document from the index.
-     *
-     * @param string $id
-     * @param string $indexName
-     * @param string $typeName
-     *
-     * @return \Elastica\Document
-     */
-    public function getDocument($id, $indexName, $typeName = '')
-    {
-        $index = $this->getIndex($indexName);
-        $type = $index->getType(
-          empty($typeName) ? $this->typeName : $typeName
-        );
-
-        $data = $this->decorator->denormalizeValue(array($id => $type->getDocument($id)->getData()));
-        return $data[$id];
-    }
-
-    /**
-     * Provides a list of all documents of the given index.
-     *
-     * @param \Elastica\Index $index
-     *
-     * @return array
-     * @throws \Assert\InvalidArgumentException
-     */
-    public function getDocuments($index)
-    {
-        Assertion::isInstanceOf(
-            $index,
-            '\Elastica\Index',
-            'The given index must be of type \Elastica\Index !'
-        );
-
-        $search = new Search($index->getClient());
-        $search->addIndex($index);
-
-        $query = new Query(new MatchAll());
-        $resultSet = $search->search($query);
-        $results = $resultSet->getResults();
-
-        return $this->decorator->denormalizeValue($this->extractData($results));
-    }
-
-    /**
-     * Extracts information from a nested result set.
-     *
-     * @param array $data
-     *
-     * @return array
-     */
-    protected function extractData(array $data)
-    {
-        $converted = array();
-
-        foreach($data as $value) {
-
-            if ($value instanceof Result) {
-
-                $converted[$value->getId()] = $value->getData();
-            }
-        }
-
-        return $converted;
-    }
-
-    /**
-     * determines if the risen error is of type Exception.
-     *
-     * @param mixed $error
-     *
-     * @return AdaptorException
-     */
-    public function normalizeError($error)
-    {
-        if ($error instanceof \Exception) {
-            return new AdaptorException($error->getMessage(), $error->getCode(), $error);
-        }
-
-        return new AdaptorException(
-            sprintf('An error accord: %s', print_r($error, true)),
-            0
-        );
     }
 
     /**
@@ -236,7 +83,6 @@ class ElasticaAdaptor implements AdaptorInterface
      *     See linked web page.
      *
      * @return \Elastica|Index
-     *
      * @link http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index.html
      */
     public function getIndex($indexName, array $indexOptions = array(), $specials = null)
@@ -261,20 +107,6 @@ class ElasticaAdaptor implements AdaptorInterface
     }
 
     /**
-     * Deletes the named index from the cluster.
-     *
-     * @param string $name
-     */
-    public function deleteIndex($name)
-    {
-        $client = $this->getClient();
-
-        $index = $client->getIndex($name);
-        $index->close();
-        $index->delete();
-    }
-
-    /**
      * Provides an elastica client.
      * @return \Elastica\Client
      */
@@ -286,6 +118,24 @@ class ElasticaAdaptor implements AdaptorInterface
         }
 
         return $this->client;
+    }
+
+    /**
+     * Merges a set of default index creation options to the set of defined options.
+     * Will only set the default options if not already defined by the passed option    set.
+     *
+     * @param array $options
+     *
+     * @return array
+     */
+    protected function mergeDefaultOptions(array $options = array())
+    {
+        $defaultOptions = array(
+            'number_of_shards'   => 5,
+            'number_of_replicas' => 1,
+        );
+
+        return array_merge(array(), $defaultOptions, $options);
     }
 
     /**
@@ -326,21 +176,190 @@ class ElasticaAdaptor implements AdaptorInterface
     }
 
     /**
-     * Merges a set of default index creation options to the set of defined options.
+     * Removes a document from the index.
      *
-     * Will only set the default options if not already defined by the passed option    set.
+     * @param array $ids
+     * @param string $index
+     * @param string $type
+     */
+    public function removeDocuments(array $ids, $index, $type = '')
+    {
+        if (empty($type)) {
+            $type = $this->typeName;
+        }
+
+        $client = $this->getClient();
+        $client->deleteIds($ids, $index, $type);
+    }
+
+    /**
+     * Updates a elsaticsearch document.
      *
-     * @param array $options
+     * @param  integer|string $id document id
+     * @param  mixed $data raw data for request body
+     * @param  string $indexName   index to update
+     * @param  string $typeName    type of index to update
+     *
+     * @throws AdaptorException in case something when wrong while sending the request to elasticsearch.
+     * @return \Elastica\Document
+     * @link http://www.elasticsearch.org/guide/reference/api/update.html
+     */
+    public function updateDocument($id, $data, $indexName, $typeName = '')
+    {
+        $index = $this->getIndex($indexName);
+        $client = $index->getClient();
+        $type = $index->getType(
+            empty($typeName) ? $this->typeName : $typeName
+        );
+
+        // data array needs to have the key 'doc'
+        $rawData = array(
+            'doc' => $this->decorator->normalizeValue($data)
+        );
+
+        $response = $client->updateDocument(
+            $id,
+            $rawData,
+            $index->getName(),
+            $type->getName()
+        );
+
+        if ($response->hasError()) {
+
+            $error = $this->normalizeError($response->getError());
+
+            throw new AdaptorException(
+                $error->getMessage(),
+                $error->getCode(),
+                $error
+            );
+        }
+
+        $type->getIndex()->refresh();
+
+        return $type->getDocument($id);
+    }
+
+    /**
+     * determines if the risen error is of type Exception.
+     *
+     * @param mixed $error
+     *
+     * @return AdaptorException
+     */
+    public function normalizeError($error)
+    {
+        if ($error instanceof \Exception) {
+            return new AdaptorException($error->getMessage(), $error->getCode(), $error);
+        }
+
+        return new AdaptorException(
+            sprintf('An error accord: %s', print_r($error, true)),
+            0
+        );
+    }
+
+    /**
+     * Fetches the requested document from the index.
+     *
+     * @param string $id
+     * @param string $indexName
+     * @param string $typeName
+     *
+     * @return \Elastica\Document
+     */
+    public function getDocument($id, $indexName, $typeName = '')
+    {
+        $index = $this->getIndex($indexName);
+        $type = $index->getType(
+            empty($typeName) ? $this->typeName : $typeName
+        );
+
+        $data = $this->decorator->denormalizeValue(array($id => $type->getDocument($id)->getData()));
+
+        return $data[$id];
+    }
+
+    /**
+     * Provides a list of all documents of the given index.
+     *
+     * @param \Elastica\Index $index
+     *
+     * @return array
+     * @throws \Assert\InvalidArgumentException
+     */
+    public function getDocuments($index)
+    {
+        Assertion::isInstanceOf(
+            $index,
+            '\Elastica\Index',
+            'The given index must be of type \Elastica\Index !'
+        );
+
+        $search = new Search($index->getClient());
+        $search->addIndex($index);
+
+        $query = new Query(new MatchAll());
+        $resultSet = $search->search($query);
+        $results = $resultSet->getResults();
+
+        return $this->decorator->denormalizeValue($this->extractData($results));
+    }
+
+    /**
+     * Extracts information from a nested result set.
+     *
+     * @param array $data
      *
      * @return array
      */
-    protected function mergeDefaultOptions(array $options = array())
+    protected function extractData(array $data)
     {
-        $defaultOptions = array(
-            'number_of_shards'   => 5,
-            'number_of_replicas' => 1,
-        );
+        $converted = array();
 
-        return array_merge(array(), $defaultOptions, $options);
+        foreach ($data as $value) {
+
+            if ($value instanceof Result) {
+
+                $converted[$value->getId()] = $value->getData();
+            }
+        }
+
+        return $converted;
+    }
+
+    /**
+     * Deletes the named index from the cluster.
+     *
+     * @param string $name
+     */
+    public function deleteIndex($name)
+    {
+        $client = $this->getClient();
+
+        $index = $client->getIndex($name);
+        $index->close();
+        $index->delete();
+    }
+
+    /**
+     * Reveals the currently set index type name.
+     * @return string
+     */
+    public function getIndexType()
+    {
+        return $this->typeName;
+    }
+
+    /**
+     * Defines the name of the default index type;
+     *
+     * @param string $typeName
+     */
+    public function setIndexType($typeName)
+    {
+        Assertion::notEmpty($typeName, 'Given name of the type to be used shall not be empty');
+
+        $this->typeName = $typeName;
     }
 }

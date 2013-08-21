@@ -520,4 +520,19 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
             ),
         );
     }
+
+    /**
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getIndexType
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::setIndexType
+     */
+    public function testIndexType()
+    {
+        $adaptor = $this->getElasticaAdapter();
+
+        $this->assertAttributeEquals('collab', 'typeName', $adaptor);
+
+        $adaptor->setIndexType('Tux');
+
+        $this->assertEquals('Tux', $adaptor->getIndexType());
+    }
 }
