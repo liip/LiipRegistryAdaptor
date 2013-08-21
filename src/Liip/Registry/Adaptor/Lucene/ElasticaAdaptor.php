@@ -44,10 +44,10 @@ class ElasticaAdaptor implements AdaptorInterface
     /**
      * Adds a document to an index.
      *
-     * @param string $indexName
+     * @param string                   $indexName
      * @param \Elastica\Document|array $document
-     * @param string $identifier
-     * @param string $typeName
+     * @param string                   $identifier
+     * @param string                   $typeName
      *
      * @throws \LogicException
      * @throws \Liip\Registry\Adaptor\AdaptorException
@@ -75,8 +75,8 @@ class ElasticaAdaptor implements AdaptorInterface
     /**
      * Provides an elasticsearch index to attach documents to.
      *
-     * @param string $indexName   Name of the lucene index
-     * @param array $indexOptions Set of options to be used to create an index
+     * @param string     $indexName    Name of the lucene index
+     * @param array      $indexOptions Set of options to be used to create an index
      * @param bool|array $specials
      *     if »bool« it deletes index first if already exists (default = false).
      *     if »array« it should b an associative array of options (option=>value).
@@ -108,6 +108,7 @@ class ElasticaAdaptor implements AdaptorInterface
 
     /**
      * Provides an elastica client.
+     *
      * @return \Elastica\Client
      */
     public function getClient()
@@ -122,7 +123,7 @@ class ElasticaAdaptor implements AdaptorInterface
 
     /**
      * Merges a set of default index creation options to the set of defined options.
-     * Will only set the default options if not already defined by the passed option    set.
+     * Will only set the default options if not already defined by the passed option set.
      *
      * @param array $options
      *
@@ -135,13 +136,13 @@ class ElasticaAdaptor implements AdaptorInterface
             'number_of_replicas' => 1,
         );
 
-        return array_merge(array(), $defaultOptions, $options);
+        return array_merge($defaultOptions, $options);
     }
 
     /**
      * Makes sure that the given data is an Elastica\Document
      *
-     * @param mixed $document
+     * @param mixed  $document
      * @param string $identifier
      *
      * @return Document
@@ -178,7 +179,7 @@ class ElasticaAdaptor implements AdaptorInterface
     /**
      * Removes a document from the index.
      *
-     * @param array $ids
+     * @param array  $ids
      * @param string $index
      * @param string $type
      */
@@ -195,10 +196,10 @@ class ElasticaAdaptor implements AdaptorInterface
     /**
      * Updates a elsaticsearch document.
      *
-     * @param  integer|string $id document id
-     * @param  mixed $data raw data for request body
-     * @param  string $indexName   index to update
-     * @param  string $typeName    type of index to update
+     * @param  integer|string $id        document id
+     * @param  mixed          $data      raw data for request body
+     * @param  string         $indexName index to update
+     * @param  string         $typeName  type of index to update
      *
      * @throws AdaptorException in case something when wrong while sending the request to elasticsearch.
      * @return \Elastica\Document
@@ -317,7 +318,7 @@ class ElasticaAdaptor implements AdaptorInterface
     {
         $converted = array();
 
-        foreach ($data as $value) {
+        foreach($data as $value) {
 
             if ($value instanceof Result) {
 
