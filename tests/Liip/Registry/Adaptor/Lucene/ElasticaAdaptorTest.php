@@ -483,4 +483,56 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
             ),
         );
     }
+
+    /**
+     * @dataProvider mergeDefaultOptionsDataprovider
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::mergeDefaultOptions
+     */
+    public function testMergeDefaultOptions($expected, $options)
+    {
+        $adaptor = $this->getProxyBuilder('\Liip\Registry\Adaptor\Lucene\ElasticaAdaptor')
+            ->disableOriginalConstructor()
+            ->setMethods(array('mergeDefaultOptions'))
+            ->getProxy();
+
+        $this->assertEquals($expected, $adaptor->mergeDefaultOptions($options));
+    }
+    public function mergeDefaultOptionsDataprovider()
+    {
+        return array(
+            'empty options' => array(
+                array(
+                    'number_of_shards' => 5,
+                    'number_of_replicas' => 1
+                ),
+                array()
+            ),
+            'preset options' => array(
+                array(
+                    'number_of_shards' => 10,
+                    'number_of_replicas' => 1,
+                    'type' => array(),
+                ),
+                array(
+                    'number_of_shards' => 10,
+                    'type' => array(),
+                )
+            ),
+        );
+    }
+
+    /**
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getIndexType
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::setIndexType
+     */
+    public function testIndexType()
+    {
+        $adaptor = $this->getElasticaAdapter();
+
+        $this->assertAttributeEquals('collab', 'typeName', $adaptor);
+
+        $adaptor->setIndexType('Tux');
+
+        $this->assertEquals('Tux', $adaptor->getIndexType());
+    }
 }

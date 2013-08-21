@@ -44,10 +44,10 @@ class ElasticaAdaptor implements AdaptorInterface
     /**
      * Adds a document to an index.
      *
-     * @param string $indexName
+     * @param string                   $indexName
      * @param \Elastica\Document|array $document
-     * @param string $identifier
-     * @param string $typeName
+     * @param string                   $identifier
+     * @param string                   $typeName
      *
      * @throws \LogicException
      * @throws \Liip\Registry\Adaptor\AdaptorException
@@ -66,7 +66,111 @@ class ElasticaAdaptor implements AdaptorInterface
             $index->refresh();
 
         } catch (BulkResponseException $e) {
-             throw new AdaptorException($e->getMessage(), $e->getCode(), $e);
+            throw new AdaptorException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        return $document;
+    }
+
+    /**
+     * Provides an elasticsearch index to attach documents to.
+     *
+     * @param string     $indexName    Name of the lucene index
+     * @param array      $indexOptions Set of options to be used to create an index
+     * @param bool|array $specials
+     *     if »bool« it deletes index first if already exists (default = false).
+     *     if »array« it should b an associative array of options (option=>value).
+     *     See linked web page.
+     *
+     * @return \Elastica|Index
+     * @link http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index.html
+     */
+    public function getIndex($indexName, array $indexOptions = array(), $specials = null)
+    {
+        $indexName = strtolower($indexName);
+
+        if (empty($this->indexes[$indexName])) {
+
+            $client = $this->getClient();
+            $this->indexes[$indexName] = $client->getIndex($indexName);
+
+            if (!$this->indexes[$indexName]->exists()) {
+
+                $this->indexes[$indexName]->create(
+                    $this->mergeDefaultOptions($indexOptions),
+                    $specials
+                );
+            }
+        }
+
+        return $this->indexes[$indexName];
+    }
+
+    /**
+     * Provides an elastica client.
+     *
+     * @return \Elastica\Client
+     */
+    public function getClient()
+    {
+        if (empty($this->client)) {
+
+            $this->client = new Client();
+        }
+
+        return $this->client;
+    }
+
+    /**
+     * Merges a set of default index creation options to the set of defined options.
+     * Will only set the default options if not already defined by the passed option set.
+     *
+     * @param array $options
+     *
+     * @return array
+     */
+    protected function mergeDefaultOptions(array $options = array())
+    {
+        $defaultOptions = array(
+            'number_of_shards'   => 5,
+            'number_of_replicas' => 1,
+        );
+
+        return array_merge($defaultOptions, $options);
+    }
+
+    /**
+     * Makes sure that the given data is an Elastica\Document
+     *
+     * @param mixed  $document
+     * @param string $identifier
+     *
+     * @return Document
+     * @throws \LogicException
+     */
+    protected function trancodeDataToDocument($document, $identifier)
+    {
+        if (!$document instanceof Document) {
+
+            if (is_object($document)) {
+
+                if (!method_exists($document, 'toArray')) {
+
+                    throw new \LogicException(
+                        'The given object representing a document value have to implement a toArray() method in order ' .
+                        'to be able to store it in elasticsearch.'
+                    );
+                }
+
+                $document = $document->toArray();
+            }
+
+            $document = $this->decorator->normalizeValue($document);
+
+            Assertion::notEmpty($document, 'The document data may not be empty.');
+
+            $document = new Document($identifier, $document);
+
         }
 
         return $document;
@@ -75,7 +179,7 @@ class ElasticaAdaptor implements AdaptorInterface
     /**
      * Removes a document from the index.
      *
-     * @param array $ids
+     * @param array  $ids
      * @param string $index
      * @param string $type
      */
@@ -92,14 +196,13 @@ class ElasticaAdaptor implements AdaptorInterface
     /**
      * Updates a elsaticsearch document.
      *
-     * @param  integer|string $id document id
-     * @param  mixed $data raw data for request body
-     * @param  string $indexName   index to update
-     * @param  string $typeName    type of index to update
+     * @param  integer|string $id        document id
+     * @param  mixed          $data      raw data for request body
+     * @param  string         $indexName index to update
+     * @param  string         $typeName  type of index to update
      *
      * @throws AdaptorException in case something when wrong while sending the request to elasticsearch.
      * @return \Elastica\Document
-     *
      * @link http://www.elasticsearch.org/guide/reference/api/update.html
      */
     public function updateDocument($id, $data, $indexName, $typeName = '')
@@ -139,6 +242,25 @@ class ElasticaAdaptor implements AdaptorInterface
     }
 
     /**
+     * determines if the risen error is of type Exception.
+     *
+     * @param mixed $error
+     *
+     * @return AdaptorException
+     */
+    public function normalizeError($error)
+    {
+        if ($error instanceof \Exception) {
+            return new AdaptorException($error->getMessage(), $error->getCode(), $error);
+        }
+
+        return new AdaptorException(
+            sprintf('An error accord: %s', print_r($error, true)),
+            0
+        );
+    }
+
+    /**
      * Fetches the requested document from the index.
      *
      * @param string $id
@@ -151,10 +273,11 @@ class ElasticaAdaptor implements AdaptorInterface
     {
         $index = $this->getIndex($indexName);
         $type = $index->getType(
-          empty($typeName) ? $this->typeName : $typeName
+            empty($typeName) ? $this->typeName : $typeName
         );
 
         $data = $this->decorator->denormalizeValue(array($id => $type->getDocument($id)->getData()));
+
         return $data[$id];
     }
 
@@ -207,60 +330,6 @@ class ElasticaAdaptor implements AdaptorInterface
     }
 
     /**
-     * determines if the risen error is of type Exception.
-     *
-     * @param mixed $error
-     *
-     * @return AdaptorException
-     */
-    public function normalizeError($error)
-    {
-        if ($error instanceof \Exception) {
-            return new AdaptorException($error->getMessage(), $error->getCode(), $error);
-        }
-
-        return new AdaptorException(
-            sprintf('An error accord: %s', print_r($error, true)),
-            0
-        );
-    }
-
-    /**
-     * Provides an elasticsearch index to attach documents to.
-     *
-     * @param string $indexName   Name of the lucene index
-     * @param array $indexOptions Set of options to be used to create an index
-     * @param bool|array $specials
-     *     if »bool« it deletes index first if already exists (default = false).
-     *     if »array« it should b an associative array of options (option=>value).
-     *     See linked web page.
-     *
-     * @return \Elastica|Index
-     *
-     * @link http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index.html
-     */
-    public function getIndex($indexName, array $indexOptions = array(), $specials = null)
-    {
-        $indexName = strtolower($indexName);
-
-        if (empty($this->indexes[$indexName])) {
-
-            $client = $this->getClient();
-            $this->indexes[$indexName] = $client->getIndex($indexName);
-
-            if (!$this->indexes[$indexName]->exists()) {
-
-                $this->indexes[$indexName]->create(
-                    $this->mergeDefaultOptions($indexOptions),
-                    $specials
-                );
-            }
-        }
-
-        return $this->indexes[$indexName];
-    }
-
-    /**
      * Deletes the named index from the cluster.
      *
      * @param string $name
@@ -275,72 +344,23 @@ class ElasticaAdaptor implements AdaptorInterface
     }
 
     /**
-     * Provides an elastica client.
-     * @return \Elastica\Client
+     * Reveals the currently set index type name.
+     * @return string
      */
-    public function getClient()
+    public function getIndexType()
     {
-        if (empty($this->client)) {
-
-            $this->client = new Client();
-        }
-
-        return $this->client;
+        return $this->typeName;
     }
 
     /**
-     * Makes sure that the given data is an Elastica\Document
+     * Defines the name of the default index type;
      *
-     * @param mixed $document
-     * @param string $identifier
-     *
-     * @return Document
-     * @throws \LogicException
+     * @param string $typeName
      */
-    protected function trancodeDataToDocument($document, $identifier)
+    public function setIndexType($typeName)
     {
-        if (!$document instanceof Document) {
+        Assertion::notEmpty($typeName, 'Given name of the type to be used shall not be empty');
 
-            if (is_object($document)) {
-
-                if (!method_exists($document, 'toArray')) {
-
-                    throw new \LogicException(
-                        'The given object representing a document value have to implement a toArray() method in order ' .
-                        'to be able to store it in elasticsearch.'
-                    );
-                }
-
-                $document = $document->toArray();
-            }
-
-            $document = $this->decorator->normalizeValue($document);
-
-            Assertion::notEmpty($document, 'The document data may not be empty.');
-
-            $document = new Document($identifier, $document);
-
-        }
-
-        return $document;
-    }
-
-    /**
-     * Merges a set of default index creation options to the set of defined options.
-     *
-     * Will only set the default options if not already defined by the passed optionset.
-     *
-     * @param array $options
-     *
-     * @return array
-     */
-    protected function mergeDefaultOptions(array $options = array())
-    {
-        $defaultOptions = array(
-            'number_of_shards'   => 5,
-            'number_of_replicas' => 1,
-        );
-
-        return array_merge(array(), $defaultOptions, $options);
+        $this->typeName = $typeName;
     }
 }
