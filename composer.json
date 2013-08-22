@@ -29,7 +29,7 @@
     },
 
     "require": {
-        "php": ">=5.3.8,<5.4",
+        "php": ">=5.3.8",
         "beberlei/assert": "dev-master",
         "ruflin/elastica": "0.20.5.0.RC1"
     },
