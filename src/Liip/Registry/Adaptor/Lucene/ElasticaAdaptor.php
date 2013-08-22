@@ -153,16 +153,18 @@ class ElasticaAdaptor implements AdaptorInterface
         if (!$document instanceof Document) {
 
             if (is_object($document)) {
+                if (get_class($document) == 'stdClass') {
+                    $document = (array) $document;
+                } else {
+                    if (!method_exists($document, 'toArray')) {
 
-                if (!method_exists($document, 'toArray')) {
-
-                    throw new \LogicException(
-                        'The given object representing a document value have to implement a toArray() method in order ' .
-                        'to be able to store it in elasticsearch.'
-                    );
+                        throw new \LogicException(
+                            'The given object representing a document value have to implement a toArray() method in order ' .
+                            'to be able to store it in elasticsearch.'
+                        );
+                    }
+                    $document = $document->toArray();
                 }
-
-                $document = $document->toArray();
             }
 
             $document = $this->decorator->normalizeValue($document);

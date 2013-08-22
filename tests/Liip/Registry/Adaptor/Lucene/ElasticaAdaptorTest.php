@@ -166,7 +166,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
         $this->setExpectedException('\LogicException');
 
-        $adaptor->registerDocument(self::$indexName, new \stdClass(), 'myDocument');
+        $adaptor->registerDocument(self::$indexName, new \SplObjectStorage(), 'myDocument');
     }
 
     /**
@@ -184,11 +184,15 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
     }
     public static function registerDocumentDataprovider()
     {
+        $obj = new \stdClass();
+        $obj->field = "value";
+        
         return array(
             'valid array data'   => array(array('Mascott' => 'Tux')),
             'valid string data'  => array('Tux'),
             'valid integer data' => array(1),
-            'valid double data'  => array(1.1)
+            'valid double data'  => array(1.1),
+            'valid stdClass data' => array($obj),
         );
     }
 
