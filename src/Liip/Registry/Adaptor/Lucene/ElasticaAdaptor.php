@@ -154,11 +154,7 @@ class ElasticaAdaptor implements AdaptorInterface
 
             if (is_object($document)) {
                 if (get_class($document) == 'stdClass') {
-                    $obj = $document;
-                    $document = array();
-                    foreach ($obj as $property => $value) {
-                        $document[$property] = $value;
-                    }
+                    $document = (array) $document;
                 } else {
                     if (!method_exists($document, 'toArray')) {
 
