@@ -22,9 +22,6 @@ class QueryStrategy implements StrategyInterface
      */
     public function execute(array $data = array())
     {
-        $fieldsIds = array_keys($data);
-
-
         $field = $this->getField();
 
         $field->setField($fieldId);
