@@ -21,6 +21,7 @@ if (file_exists($baseDir . "/vendor/autoload.php")) {
 
 $loader->addClassMap(
     array(
-        "Liip\\Registry\\Adaptor\\Tests\\RegistryTestCase" => $baseDir . '/tests/Liip/Registry/Adaptor/RegistryTestCase.php'
+        "Liip\\Registry\\Adaptor\\Tests\\RegistryTestCase" => $baseDir . '/tests/Liip/Registry/Adaptor/RegistryTestCase.php',
+        "Liip\\Registry\\Adaptor\\Tests\\Fixtures\\Entity" => $baseDir . '/tests/fixtures/Entity.php',
     )
 );
