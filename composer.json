@@ -15,6 +15,10 @@
             "name": "Patrick Jezek",
             "email": "patrick.jezek@liip.ch",
             "role": "maintainer"
+        },
+        {
+            "name": "List of contributors",
+            "homepage": "https://github.com/liip/LiipRegistryAdaptor/graphs/contributors"
         }
     ],
 
@@ -29,7 +33,6 @@
     },
 
     "require": {
-        "php": ">=5.3.8,<5.4",
         "beberlei/assert": "dev-master",
         "ruflin/elastica": "0.20.5.0.RC1"
     },
