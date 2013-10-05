@@ -10,6 +10,7 @@ use Elastica\Result;
 use Elastica\Response;
 use Liip\Registry\Adaptor\AdaptorException;
 use Liip\Registry\Adaptor\Decorator\NoOpDecorator;
+use Liip\Registry\Adaptor\Tests\Fixtures\Entity;
 use Liip\Registry\Adaptor\Tests\RegistryTestCase;
 
 class ElasticaAdaptorFunctionalTest extends RegistryTestCase
@@ -153,7 +154,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
     /**
      * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::registerDocument
-     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::trancodeDataToDocument
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::transcodeDataToDocument
      */
     public function testRegisterDocumentExpectingLogicException()
     {
@@ -515,4 +516,37 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
         $this->assertEquals('Tux', $adaptor->getIndexType());
     }
 
+    /**
+     * @dataProvider transcodeDataToDocumentDateprovider
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::transcodeDataToDocument
+     */
+    public function testTranscodeDataToDocument($expected, $field, $document)
+    {
+        $adaptor = $this->getProxyBuilder('\\Liip\\Registry\\Adaptor\\Lucene\\ElasticaAdaptor')
+            ->disableOriginalConstructor()
+            ->setMethods(array('transcodeDataToDocument'))
+            ->setProperties(array('decorator'))
+            ->getProxy();
+        $adaptor->decorator = new NoOpDecorator();
+
+
+        $esDoc = $adaptor->transcodeDataToDocument($document, 'mascotDoc');
+
+        $this->assertEquals('mascotDoc', $esDoc->getId());
+        $this->assertEquals($expected, $esDoc->get($field));
+    }
+
+    public function transcodeDataToDocumentDateprovider()
+    {
+        $entity = new Entity(array('otherMascots' => array('Tux', 'Gnu')));
+
+        $class = new \stdClass;
+        $class->osMascotts = array('Tux', 'Gnu');
+
+        return array(
+            'transcode array' => array(array('Tux', 'Gnu'), 'mascots', array('mascots' => array('Tux', 'Gnu'))),
+            'transcode entity' => array(array('Tux', 'Gnu'), 'otherMascots', $entity),
+            'transcode stdClass' => array(array('Tux', 'Gnu'), 'osMascotts', $class),
+        );
+    }
 }

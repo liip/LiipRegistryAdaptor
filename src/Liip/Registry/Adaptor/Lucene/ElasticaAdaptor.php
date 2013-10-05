@@ -61,7 +61,7 @@ class ElasticaAdaptor implements AdaptorInterface
         );
 
         try {
-            $document = $this->trancodeDataToDocument($document, $identifier);
+            $document = $this->transcodeDataToDocument($document, $identifier);
             $type->addDocuments(array($document));
             $index->refresh();
 
@@ -148,7 +148,7 @@ class ElasticaAdaptor implements AdaptorInterface
      * @return Document
      * @throws \LogicException
      */
-    protected function trancodeDataToDocument($document, $identifier)
+    protected function transcodeDataToDocument($document, $identifier)
     {
         if (!$document instanceof Document) {
 
