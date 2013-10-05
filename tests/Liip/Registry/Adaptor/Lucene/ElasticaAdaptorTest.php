@@ -10,7 +10,6 @@ use Elastica\Result;
 use Elastica\Response;
 use Liip\Registry\Adaptor\AdaptorException;
 use Liip\Registry\Adaptor\Decorator\NoOpDecorator;
-use Liip\Registry\Adaptor\Decorator\NormalizeDecorator;
 use Liip\Registry\Adaptor\Tests\RegistryTestCase;
 
 class ElasticaAdaptorFunctionalTest extends RegistryTestCase
@@ -27,7 +26,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
      */
     protected function getElasticaAdapter()
     {
-        return new ElasticaAdaptor(new NormalizeDecorator());
+        return new ElasticaAdaptor(new NoOpDecorator());
     }
 
     /**
@@ -170,29 +169,15 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
     }
 
     /**
-     * @dataProvider registerDocumentDataprovider
      * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::registerDocument
      */
-    public function testRegisterDocument($value)
+    public function testRegisterDocument()
     {
         $adaptor = $this->getElasticaAdapter();
 
         $this->assertInstanceOf(
             '\Elastica\Document',
-            $adaptor->registerDocument(self::$indexName, $value)
-        );
-    }
-    public static function registerDocumentDataprovider()
-    {
-        $obj = new \stdClass();
-        $obj->field = "value";
-        
-        return array(
-            'valid array data'   => array(array('Mascott' => 'Tux')),
-            'valid string data'  => array('Tux'),
-            'valid integer data' => array(1),
-            'valid double data'  => array(1.1),
-            'valid stdClass data' => array($obj),
+            $adaptor->registerDocument(self::$indexName, array('Mascott' => 'Tux'))
         );
     }
 
@@ -220,8 +205,12 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
     public static function updateDocumentDataprovider()
     {
         return array(
-            'valid array data'   => array(
-                array('array' => '{"food":"Crisps","nearNonFood":"Sponch"}'),
+            'valid array data adding fields'   => array(
+                array(
+                    "food" => "Crisps",
+                    "nearNonFood" => "Sponch",
+                    'Mascott' => 'Tux'
+                ),
                 'foodStock',
                 array('Mascott' => 'Tux'),
                 array(
@@ -229,30 +218,16 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
                     'nearNonFood' => 'Sponch'
                 ),
             ),
-            'valid string data'  => array(
+            'valid array data overriding fields'   => array(
                 array(
-                    'string' => '"OUYA"'
+                    "Mascott" => "Linus",
                 ),
-                'gamingConsoles',
-                'XBOX',
-                'OUYA',
+                'foodStock',
+                array('Mascott' => 'Tux'),
+                array(
+                    "Mascott" => "Linus",
+                ),
             ),
-            'valid integer data' => array(
-                array(
-                    'integer' => 9911
-                ),
-                "numbers",
-                1,
-                9911
-            ),
-            'valid double data'  => array(
-                array(
-                    'double' => 10.040401
-                ),
-                "doubles",
-                1.1,
-                10.040401
-            )
         );
     }
 
@@ -288,7 +263,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
             ->will($this->returnValue($client));
 
         $adaptor = $this->getProxyBuilder('\\Liip\\Registry\\Adaptor\\Lucene\\ElasticaAdaptor')
-            ->setConstructorArgs(array(new NormalizeDecorator()))
+            ->setConstructorArgs(array(new NoOpDecorator()))
             ->setProperties(array('indexes'))
             ->getProxy();
 
@@ -442,7 +417,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
     public function testExtractData($expected, $value)
     {
         $registry = $this->getProxyBuilder('\\Liip\\Registry\\Adaptor\\Lucene\\ElasticaAdaptor')
-            ->setConstructorArgs(array(new NormalizeDecorator()))
+            ->setConstructorArgs(array(new NoOpDecorator()))
             ->setMethods(array('extractData'))
             ->getProxy();
 
@@ -539,4 +514,5 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
         $this->assertEquals('Tux', $adaptor->getIndexType());
     }
+
 }
