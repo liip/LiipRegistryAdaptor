@@ -3,10 +3,10 @@
 This library is an extension to the [LiipDripalRegistryModule](https://github.com/liip/LiipDrupalRegistryModule).
 It introduces a number of adaptors to be able to integrate the registry with a number of external services; like Elasticsearch.
 
-## Current Travis Status
+## Current Project Status
 
 [![Build Status](https://travis-ci.org/liip/LiipRegistryAdaptor.png?branch=master)](https://travis-ci.org/liip/LiipRegistryAdaptor)
-
+[![Dependency Status](https://www.versioneye.com/user/projects/52526e85632bac22fc000075/badge.png)](https://www.versioneye.com/user/projects/52526e85632bac22fc000075)
 
 ## Installation
 The source is now PSR-0 compatible. There is no specific installation routine to be followed. Just clone or checkout the source into to your project
