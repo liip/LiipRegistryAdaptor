@@ -347,6 +347,85 @@ class ElasticaAdaptor implements AdaptorInterface
     }
 
     /**
+     * Deletes the named type from a named index from the cluster.
+     *
+     * @param string $indexName
+     * @param string $typeName
+     *
+     * @return \Elastica\Response
+     */
+    public function deleteType($indexName, $typeName)
+    {
+        Assertion::string($indexName, 'indexName has to be a string!');
+        Assertion::string($typeName, 'typeName has to be a string!');
+
+        $client = $this->getClient();
+        $index = $client->getIndex($indexName);
+        $type = $index->getType($typeName);
+
+        return $type->delete();
+    }
+
+    /**
+     * Does a count query on given type and index.
+     *
+     * @param string $indexName
+     * @param string $typeName
+     * @param string $query
+     *
+     * @return int
+     */
+    public function getTypeCount($indexName, $typeName, $query = '')
+    {
+        Assertion::string($indexName, 'indexName has to be a string!');
+        Assertion::string($typeName, 'typeName has to be a string!');
+        Assertion::string($query, 'query has to be a string!');
+
+        $client = $this->getClient();
+        $index = $client->getIndex($indexName);
+        $type = $index->getType($typeName);
+
+        return $type->count($query);
+    }
+
+    /**
+     * Returns current mapping for the given type and index.
+     *
+     * @param string $indexName
+     * @param string $typeName
+     *
+     * @return int
+     */
+    public function getTypeMapping($indexName, $typeName)
+    {
+        Assertion::string($indexName, 'indexName has to be a string!');
+        Assertion::string($typeName, 'typeName has to be a string!');
+
+        $client = $this->getClient();
+        $index = $client->getIndex($indexName);
+        $type = $index->getType($typeName);
+
+        return $type->getMapping();
+    }
+
+    /**
+     * Returns current mapping for the given type and index.
+     *
+     * @param string $indexName
+     *
+     * @return int
+     */
+    public function getIndexMapping($indexName)
+    {
+        Assertion::string($indexName, 'indexName has to be a string!');
+
+        $client = $this->getClient();
+        $index = $client->getIndex($indexName);
+
+        return $index->getMapping();
+    }
+
+    /**
      * Reveals the currently set index type name.
      * @return string
      */
