@@ -155,14 +155,17 @@ class ElasticaAdaptor implements AdaptorInterface
                 if (get_class($document) == 'stdClass') {
                     $document = (array) $document;
                 } else {
-                    if (!method_exists($document, 'toArray')) {
-
+                    if ($document instanceof \JsonSerializable) {
+                        $document = json_encode($document);
+                    } elseif (method_exists($document, 'toArray')) {
+                        $document = $document->toArray();
+                    } else {
                         throw new \LogicException(
-                            'The given object representing a document value have to implement a toArray() method in order ' .
-                            'to be able to store it in elasticsearch.'
+                            'The given object representing a document value eihter have to implement the JsonSerializable'.
+                            'interface or a toArray() method in order to be stored it in elasticsearch.',
+                            AdaptorException::DARA_UNSERIALIZABLE
                         );
                     }
-                    $document = $document->toArray();
                 }
             }
 

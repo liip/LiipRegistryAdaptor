@@ -179,6 +179,30 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
         );
     }
 
+    public function testRegisterJsonserializableDocument()
+    {
+        if (version_compare('5.4.0', '<')) {
+            $this->markTestSkipped('JsonSerializable is supported from PHP 5.4.');
+        }
+
+        $document = $this->getMockBuilder('\JsonSerializable')
+            ->setMethods(array('jsonSerialize'))
+            ->getMockForAbstractClass();
+        $document
+            ->expects($this->once())
+            ->method('jsonSerialize')
+            ->will(
+                $this->returnValue(new \Elastica\Document())
+            );
+
+
+        $adaptor = $this->getElasticaAdapter();
+        $this->assertInstanceOf(
+            '\Elastica\Document',
+            $adaptor->registerDocument(self::$indexName, $document)
+        );
+    }
+
     /**
      * @dataProvider updateDocumentDataprovider
      * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::updateDocument
