@@ -2,10 +2,9 @@
 namespace Liip\Registry\Adaptor\Lucene;
 
 use Assert\Assertion;
-use Assert\InvalidArgumentException;
 use Elastica\Client;
 use Elastica\Document;
-use Elastica\Exception\BulkResponseException;
+use Elastica\Exception\InvalidException;
 use Elastica\Index;
 use Elastica\Query;
 use Elastica\Query\MatchAll;
@@ -65,7 +64,7 @@ class ElasticaAdaptor implements AdaptorInterface
             $type->addDocuments(array($document));
             $index->refresh();
 
-        } catch (BulkResponseException $e) {
+        } catch (InvalidException $e) {
             throw new AdaptorException($e->getMessage(), $e->getCode(), $e);
         }
 
@@ -172,7 +171,6 @@ class ElasticaAdaptor implements AdaptorInterface
             Assertion::notEmpty($document, 'The document data may not be empty.');
 
             $document = new Document($identifier, $document);
-
         }
 
         return $document;
@@ -258,7 +256,7 @@ class ElasticaAdaptor implements AdaptorInterface
 
         return new AdaptorException(
             sprintf('An error accord: %s', print_r($error, true)),
-            0
+            AdaptorException::UNKNOWN_ERROR
         );
     }
 

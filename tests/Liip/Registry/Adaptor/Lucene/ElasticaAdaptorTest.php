@@ -3,8 +3,8 @@
 namespace Liip\Registry\Adaptor\Lucene;
 
 use Elastica\Client;
-use Elastica\Exception\BulkResponseException;
 use Elastica\Exception\ClientException;
+use Elastica\Exception\InvalidException;
 use Elastica\Index;
 use Elastica\Result;
 use Elastica\Response;
@@ -119,9 +119,6 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
      */
     public function testRegisterDocumentExpectingAdaptorException()
     {
-
-        $response = new Response('FAILED');
-
         $type = $this->getMockBuilder('\\Elastica\\Type')
             ->disableOriginalConstructor()
             ->setMethods(array('addDocuments'))
@@ -129,7 +126,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
         $type
             ->expects($this->once())
             ->method('addDocuments')
-            ->will($this->throwException(new BulkResponseException($response)));
+            ->will($this->throwException(new InvalidException('Array has to consist of at least one element')));
 
         $index = $this->getMockBuilder('\\Elastica\\Index')
             ->disableOriginalConstructor()
