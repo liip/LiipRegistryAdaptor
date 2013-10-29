@@ -181,7 +181,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
     public function testRegisterJsonserializableDocument()
     {
-        if (!class_exists('\JsonSerializable')) {
+        if (!interface_exists('\JsonSerializable')) {
             $this->markTestSkipped('JsonSerializable is supported from PHP 5.4.');
         }
 
