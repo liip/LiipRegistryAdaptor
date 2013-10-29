@@ -649,6 +649,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
         $adaptor->indexes = array(strtolower(self::$indexName) => $index);
 
         $adaptor->getTypeCount(self::$indexName, self::$typeName);
+    }
 
     /**
      * @dataProvider transcodeDataToDocumentDateprovider
