@@ -1,6 +1,6 @@
 # LiipRegistryAdaptor
 
-This library is an extension to the [LiipDripalRegistryModule](https://github.com/liip/LiipDrupalRegistryModule).
+This library is an extension to the [LiipDrupalRegistryModule](https://github.com/liip/LiipDrupalRegistryModule).
 It introduces a number of adaptors to be able to integrate the registry with a number of external services; like Elasticsearch.
 
 ## Current Project Status
