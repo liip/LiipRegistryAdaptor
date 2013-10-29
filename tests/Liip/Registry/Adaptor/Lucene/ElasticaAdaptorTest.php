@@ -555,9 +555,9 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
         $adaptor = $this->getElasticaAdapter();
         $index = $adaptor->getIndex(self::$indexName);
         $type = $index->getType(self::$typeName);
-        
+
         $this->assertEquals(self::$typeName, $type->getName());
-        
+
         $adaptor->deleteType(self::$indexName, self::$typeName);
         // type no longer exists: will raise an exception
         $index->getType(self::$typeName);
