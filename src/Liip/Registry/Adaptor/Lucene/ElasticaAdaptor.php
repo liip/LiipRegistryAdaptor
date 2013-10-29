@@ -355,9 +355,6 @@ class ElasticaAdaptor implements AdaptorInterface
      */
     public function deleteType($indexName, $typeName)
     {
-        Assertion::string($indexName, 'indexName has to be a string!');
-        Assertion::string($typeName, 'typeName has to be a string!');
-
         $client = $this->getClient();
         $index = $client->getIndex($indexName);
         $type = $index->getType($typeName);
@@ -376,10 +373,6 @@ class ElasticaAdaptor implements AdaptorInterface
      */
     public function getTypeCount($indexName, $typeName, $query = '')
     {
-        Assertion::string($indexName, 'indexName has to be a string!');
-        Assertion::string($typeName, 'typeName has to be a string!');
-        Assertion::string($query, 'query has to be a string!');
-
         $client = $this->getClient();
         $index = $client->getIndex($indexName);
         $type = $index->getType($typeName);
@@ -397,11 +390,7 @@ class ElasticaAdaptor implements AdaptorInterface
      */
     public function getTypeMapping($indexName, $typeName)
     {
-        Assertion::string($indexName, 'indexName has to be a string!');
-        Assertion::string($typeName, 'typeName has to be a string!');
-
-        $client = $this->getClient();
-        $index = $client->getIndex($indexName);
+        $index = $this->getIndex($indexName);
         $type = $index->getType($typeName);
 
         return $type->getMapping();
@@ -416,7 +405,6 @@ class ElasticaAdaptor implements AdaptorInterface
      */
     public function getIndexMapping($indexName)
     {
-        Assertion::string($indexName, 'indexName has to be a string!');
 
         $client = $this->getClient();
         $index = $client->getIndex($indexName);
