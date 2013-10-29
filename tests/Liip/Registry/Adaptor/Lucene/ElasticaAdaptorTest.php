@@ -619,6 +619,38 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
     }
 
     /**
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getTypeCount
+     */
+    public function testGetTypeCount()
+    {
+        $type = $this->getMockBuilder('\\Elastica\\Type')
+            ->disableOriginalConstructor()
+            ->setMethods(array('count'))
+            ->getMock();
+        $type
+            ->expects($this->once())
+            ->method('count')
+            ->with($this->isType('string'))
+            ->will($this->returnValue('tested'));
+
+        $index = $this->getMockBuilder('\\Elastica\\Index')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getType'))
+            ->getMock();
+        $index
+            ->expects($this->once())
+            ->method('getType')
+            ->will($this->returnValue($type));
+
+        $adaptor = $this->getProxyBuilder('\\Liip\\Registry\\Adaptor\\Lucene\\ElasticaAdaptor')
+            ->disableOriginalConstructor()
+            ->setProperties(array('indexes'))
+            ->getProxy();
+        $adaptor->indexes = array(strtolower(self::$indexName) => $index);
+
+        $adaptor->getTypeCount(self::$indexName, self::$typeName);
+
+    /**
      * @dataProvider transcodeDataToDocumentDateprovider
      * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::transcodeDataToDocument
      */
