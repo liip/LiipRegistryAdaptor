@@ -21,6 +21,11 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
     protected static $indexName = 'testindex';
 
     /**
+     * @var string Name of the es type to be used throughout the test suite.
+     */
+    protected static $typeName = 'testtype';
+
+    /**
      * Provides a ElasticaAdaptor with the normalizer decorator
      *
      * @return ElasticaAdaptor
@@ -540,6 +545,110 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
         $adaptor->setIndexType('Tux');
 
         $this->assertEquals('Tux', $adaptor->getIndexType());
+    }
+    /**
+     * @expectedException \Elastica\Exception\ResponseException
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::deleteType
+     */
+    public function testDeleteType()
+    {
+        $adaptor = $this->getElasticaAdapter();
+        $index = $adaptor->getIndex(self::$indexName);
+        $type = $index->getType(self::$typeName);
+
+        $this->assertEquals(self::$typeName, $type->getName());
+
+        $adaptor->deleteType(self::$indexName, self::$typeName);
+        // type no longer exists: will raise an exception
+        $index->getType(self::$typeName);
+    }
+
+    /**
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getTypeMapping
+     */
+    public function testGetTypeMapping()
+    {
+        $type = $this->getMockBuilder('\\Elastica\\Type')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getMapping'))
+            ->getMock();
+        $type
+            ->expects($this->once())
+            ->method('getMapping')
+            ->will($this->returnValue('tested'));
+
+        $index = $this->getMockBuilder('\\Elastica\\Index')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getType'))
+            ->getMock();
+        $index
+            ->expects($this->once())
+            ->method('getType')
+            ->will($this->returnValue($type));
+
+        $adaptor = $this->getProxyBuilder('\\Liip\\Registry\\Adaptor\\Lucene\\ElasticaAdaptor')
+            ->disableOriginalConstructor()
+            ->setProperties(array('indexes'))
+            ->getProxy();
+        $adaptor->indexes = array(strtolower(self::$indexName) => $index);
+
+        $adaptor->getTypeMapping(self::$indexName, self::$typeName);
+    }
+
+    /**
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getIndexMapping
+     */
+    public function testGetIndexMapping()
+    {
+        $index = $this->getMockBuilder('\\Elastica\\Index')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getMapping'))
+            ->getMock();
+        $index
+            ->expects($this->once())
+            ->method('getMapping')
+            ->will($this->returnValue('tested'));
+
+        $adaptor = $this->getProxyBuilder('\\Liip\\Registry\\Adaptor\\Lucene\\ElasticaAdaptor')
+            ->disableOriginalConstructor()
+            ->setProperties(array('indexes'))
+            ->getProxy();
+        $adaptor->indexes = array(strtolower(self::$indexName) => $index);
+
+        $adaptor->getIndexMapping(self::$indexName);
+    }
+
+    /**
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getTypeCount
+     */
+    public function testGetTypeCount()
+    {
+        $type = $this->getMockBuilder('\\Elastica\\Type')
+            ->disableOriginalConstructor()
+            ->setMethods(array('count'))
+            ->getMock();
+        $type
+            ->expects($this->once())
+            ->method('count')
+            ->with($this->isType('string'))
+            ->will($this->returnValue('tested'));
+
+        $index = $this->getMockBuilder('\\Elastica\\Index')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getType'))
+            ->getMock();
+        $index
+            ->expects($this->once())
+            ->method('getType')
+            ->will($this->returnValue($type));
+
+        $adaptor = $this->getProxyBuilder('\\Liip\\Registry\\Adaptor\\Lucene\\ElasticaAdaptor')
+            ->disableOriginalConstructor()
+            ->setProperties(array('indexes'))
+            ->getProxy();
+        $adaptor->indexes = array(strtolower(self::$indexName) => $index);
+
+        $adaptor->getTypeCount(self::$indexName, self::$typeName);
     }
 
     /**
