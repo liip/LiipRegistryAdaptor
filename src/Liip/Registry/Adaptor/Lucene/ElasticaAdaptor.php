@@ -374,8 +374,7 @@ class ElasticaAdaptor implements AdaptorInterface
      */
     public function getTypeCount($indexName, $typeName, $query = '')
     {
-        $client = $this->getClient();
-        $index = $client->getIndex($indexName);
+        $index = $this->getIndex($indexName);
         $type = $index->getType($typeName);
 
         return $type->count($query);
