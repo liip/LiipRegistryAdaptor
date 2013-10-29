@@ -21,6 +21,11 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
     protected static $indexName = 'testindex';
 
     /**
+     * @var string Name of the es type to be used throughout the test suite.
+     */
+    protected static $typeName = 'testtype';
+
+    /**
      * Provides a ElasticaAdaptor with the normalizer decorator
      *
      * @return ElasticaAdaptor
@@ -540,6 +545,22 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
         $adaptor->setIndexType('Tux');
 
         $this->assertEquals('Tux', $adaptor->getIndexType());
+    }
+    /**
+     * @expectedException \Elastica\Exception\ResponseException
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::deleteType
+     */
+    public function testDeleteType()
+    {
+        $adaptor = $this->getElasticaAdapter();
+        $index = $adaptor->getIndex(self::$indexName);
+        $type = $index->getType(self::$typeName);
+        
+        $this->assertEquals(self::$typeName, $type->getName());
+        
+        $adaptor->deleteType(self::$indexName, self::$typeName);
+        // type no longer exists: will raise an exception
+        $index->getType(self::$typeName);
     }
 
     /**
