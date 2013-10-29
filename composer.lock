@@ -3,7 +3,7 @@
         "This file locks the dependencies of your project to a known state",
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
     ],
-    "hash": "1aef3130a9cf72e1e2e0dc9f06bc774b",
+    "hash": "71e8f7fcf695255a57c7ea021f3495b7",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -11,12 +11,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/beberlei/assert.git",
-                "reference": "11a44345da7b33634be0f6c0e0507755e936a738"
+                "reference": "7d1fe7d2c13d42454b3dc2873764662821546b4b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/beberlei/assert/zipball/11a44345da7b33634be0f6c0e0507755e936a738",
-                "reference": "11a44345da7b33634be0f6c0e0507755e936a738",
+                "url": "https://api.github.com/repos/beberlei/assert/zipball/7d1fe7d2c13d42454b3dc2873764662821546b4b",
+                "reference": "7d1fe7d2c13d42454b3dc2873764662821546b4b",
                 "shasum": ""
             },
             "require": {
@@ -44,33 +44,40 @@
                 "assertion",
                 "validation"
             ],
-            "time": "2013-07-24 16:58:55"
+            "time": "2013-10-22 12:00:27"
         },
         {
             "name": "ruflin/elastica",
-            "version": "v0.20.5.0.RC1",
+            "version": "v0.90.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ruflin/Elastica.git",
-                "reference": "v0.20.5.0.RC1"
+                "reference": "8290c801df17df5ec3dff31f155867a30f793807"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ruflin/Elastica/zipball/v0.20.5.0.RC1",
-                "reference": "v0.20.5.0.RC1",
+                "url": "https://api.github.com/repos/ruflin/Elastica/zipball/8290c801df17df5ec3dff31f155867a30f793807",
+                "reference": "8290c801df17df5ec3dff31f155867a30f793807",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.0"
+                "php": ">=5.3.3"
             },
             "require-dev": {
                 "munkie/elasticsearch-thrift-php": "1.4.*",
-                "phpunit/phpunit": "3.7.*"
+                "psr/log": "~1.0"
             },
             "suggest": {
-                "munkie/elasticsearch-thrift-php": "Allow using thrift transport"
+                "monolog/monolog": "Logging request",
+                "munkie/elasticsearch-thrift-php": "Allow using thrift transport",
+                "psr/log": "for logging"
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.20.5.x-dev"
+                }
+            },
             "autoload": {
                 "psr-0": {
                     "Elastica": "lib/",
@@ -88,12 +95,12 @@
                 }
             ],
             "description": "Elasticsearch Client",
-            "homepage": "http://ruflin.github.com/Elastica/",
+            "homepage": "http://elastica.io/",
             "keywords": [
                 "client",
                 "search"
             ],
-            "time": "2013-02-20 20:09:46"
+            "time": "2013-10-27 12:53:43"
         }
     ],
     "packages-dev": [
@@ -150,7 +157,7 @@
         "lapistano/proxy-object": 20
     },
     "platform": {
-        "php": ">=5.3.8,<5.4"
+        "php": ">=5.3.8"
     },
     "platform-dev": [
 

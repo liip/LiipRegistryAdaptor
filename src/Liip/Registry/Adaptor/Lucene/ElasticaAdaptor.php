@@ -2,10 +2,9 @@
 namespace Liip\Registry\Adaptor\Lucene;
 
 use Assert\Assertion;
-use Assert\InvalidArgumentException;
 use Elastica\Client;
 use Elastica\Document;
-use Elastica\Exception\BulkResponseException;
+use Elastica\Exception\InvalidException;
 use Elastica\Index;
 use Elastica\Query;
 use Elastica\Query\MatchAll;
@@ -65,7 +64,7 @@ class ElasticaAdaptor implements AdaptorInterface
             $type->addDocuments(array($document));
             $index->refresh();
 
-        } catch (BulkResponseException $e) {
+        } catch (InvalidException $e) {
             throw new AdaptorException($e->getMessage(), $e->getCode(), $e);
         }
 
@@ -156,14 +155,17 @@ class ElasticaAdaptor implements AdaptorInterface
                 if (get_class($document) == 'stdClass') {
                     $document = (array) $document;
                 } else {
-                    if (!method_exists($document, 'toArray')) {
-
+                    if ($document instanceof \JsonSerializable) {
+                        $document = json_encode($document);
+                    } elseif (method_exists($document, 'toArray')) {
+                        $document = $document->toArray();
+                    } else {
                         throw new \LogicException(
-                            'The given object representing a document value have to implement a toArray() method in order ' .
-                            'to be able to store it in elasticsearch.'
+                            'The given object representing a document value eihter have to implement the JsonSerializable'.
+                            'interface or a toArray() method in order to be stored it in elasticsearch.',
+                            AdaptorException::DATA_UNSERIALIZABLE
                         );
                     }
-                    $document = $document->toArray();
                 }
             }
 
@@ -172,7 +174,6 @@ class ElasticaAdaptor implements AdaptorInterface
             Assertion::notEmpty($document, 'The document data may not be empty.');
 
             $document = new Document($identifier, $document);
-
         }
 
         return $document;
@@ -258,7 +259,7 @@ class ElasticaAdaptor implements AdaptorInterface
 
         return new AdaptorException(
             sprintf('An error accord: %s', print_r($error, true)),
-            0
+            AdaptorException::UNKNOWN_ERROR
         );
     }
 

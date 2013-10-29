@@ -3,8 +3,8 @@
 namespace Liip\Registry\Adaptor\Lucene;
 
 use Elastica\Client;
-use Elastica\Exception\BulkResponseException;
 use Elastica\Exception\ClientException;
+use Elastica\Exception\InvalidException;
 use Elastica\Index;
 use Elastica\Result;
 use Elastica\Response;
@@ -119,9 +119,6 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
      */
     public function testRegisterDocumentExpectingAdaptorException()
     {
-
-        $response = new Response('FAILED');
-
         $type = $this->getMockBuilder('\\Elastica\\Type')
             ->disableOriginalConstructor()
             ->setMethods(array('addDocuments'))
@@ -129,7 +126,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
         $type
             ->expects($this->once())
             ->method('addDocuments')
-            ->will($this->throwException(new BulkResponseException($response)));
+            ->will($this->throwException(new InvalidException('Array has to consist of at least one element')));
 
         $index = $this->getMockBuilder('\\Elastica\\Index')
             ->disableOriginalConstructor()
@@ -179,6 +176,35 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
         $this->assertInstanceOf(
             '\Elastica\Document',
             $adaptor->registerDocument(self::$indexName, array('Mascott' => 'Tux'))
+        );
+    }
+
+    public function testRegisterJsonserializableDocument()
+    {
+        if (!interface_exists('\JsonSerializable')) {
+            $this->markTestSkipped('JsonSerializable is supported from PHP 5.4.');
+        }
+
+        $document = $this->getMockBuilder('\JsonSerializable')
+            ->setMethods(array('jsonSerialize'))
+            ->getMockForAbstractClass();
+        $document
+            ->expects($this->once())
+            ->method('jsonSerialize')
+            ->will(
+                $this->returnValue(
+                    array(
+                        'id' => 12343543,
+                        'name' => 'Tux'
+                    )
+                )
+            );
+
+
+        $adaptor = $this->getElasticaAdapter();
+        $this->assertInstanceOf(
+            '\Elastica\Document',
+            $adaptor->registerDocument(self::$indexName, $document)
         );
     }
 
