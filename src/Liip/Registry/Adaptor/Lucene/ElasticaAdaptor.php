@@ -406,9 +406,7 @@ class ElasticaAdaptor implements AdaptorInterface
      */
     public function getIndexMapping($indexName)
     {
-
-        $client = $this->getClient();
-        $index = $client->getIndex($indexName);
+        $index = $this->getIndex($indexName);
 
         return $index->getMapping();
     }
