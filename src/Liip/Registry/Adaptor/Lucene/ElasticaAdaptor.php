@@ -163,7 +163,7 @@ class ElasticaAdaptor implements AdaptorInterface
                         throw new \LogicException(
                             'The given object representing a document value eihter have to implement the JsonSerializable'.
                             'interface or a toArray() method in order to be stored it in elasticsearch.',
-                            AdaptorException::DARA_UNSERIALIZABLE
+                            AdaptorException::DATA_UNSERIALIZABLE
                         );
                     }
                 }
