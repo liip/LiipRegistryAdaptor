@@ -593,4 +593,27 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
         $adaptor->getTypeMapping(self::$indexName, self::$typeName);
     }
+
+    /**
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getDocuments
+     */
+    public function testGetIndexMapping()
+    {
+        $index = $this->getMockBuilder('\\Elastica\\Index')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getMapping'))
+            ->getMock();
+        $index
+            ->expects($this->once())
+            ->method('getMapping')
+            ->will($this->returnValue('tested'));
+
+        $adaptor = $this->getProxyBuilder('\\Liip\\Registry\\Adaptor\\Lucene\\ElasticaAdaptor')
+            ->disableOriginalConstructor()
+            ->setProperties(array('indexes'))
+            ->getProxy();
+        $adaptor->indexes = array(strtolower(self::$indexName) => $index);
+
+        $adaptor->getIndexMapping(self::$indexName);
+    }
 }
