@@ -563,7 +563,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
     }
 
     /**
-     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getDocuments
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getTypeMapping
      */
     public function testGetTypeMapping()
     {
@@ -595,7 +595,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
     }
 
     /**
-     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getDocuments
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getIndexMapping
      */
     public function testGetIndexMapping()
     {
