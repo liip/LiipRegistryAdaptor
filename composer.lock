@@ -3,20 +3,20 @@
         "This file locks the dependencies of your project to a known state",
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
     ],
-    "hash": "71e8f7fcf695255a57c7ea021f3495b7",
+    "hash": "950098ca23d4a064d4f6c178502989a7",
     "packages": [
         {
             "name": "beberlei/assert",
-            "version": "dev-master",
+            "version": "v1.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/beberlei/assert.git",
-                "reference": "7d1fe7d2c13d42454b3dc2873764662821546b4b"
+                "reference": "b01a2868fcebcefc14ce3ae240d5b2fbba1d7126"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/beberlei/assert/zipball/7d1fe7d2c13d42454b3dc2873764662821546b4b",
-                "reference": "7d1fe7d2c13d42454b3dc2873764662821546b4b",
+                "url": "https://api.github.com/repos/beberlei/assert/zipball/b01a2868fcebcefc14ce3ae240d5b2fbba1d7126",
+                "reference": "b01a2868fcebcefc14ce3ae240d5b2fbba1d7126",
                 "shasum": ""
             },
             "require": {
@@ -44,7 +44,7 @@
                 "assertion",
                 "validation"
             ],
-            "time": "2013-10-22 12:00:27"
+            "time": "2013-10-01 11:37:27"
         },
         {
             "name": "ruflin/elastica",
@@ -153,7 +153,6 @@
     ],
     "minimum-stability": "dev",
     "stability-flags": {
-        "beberlei/assert": 20,
         "lapistano/proxy-object": 20
     },
     "platform": {
