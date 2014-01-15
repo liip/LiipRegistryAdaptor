@@ -16,9 +16,13 @@ use Liip\Registry\Adaptor\Decorator\DecoratorInterface;
 class ElasticaAdaptor implements AdaptorInterface
 {
     /**
-     * @var \Elastica\Index[]
+     * @var \Elastica\Index[] Format [indexName => /Elastica/Index]
      */
-    protected $indexes;
+    protected $indexes = array();
+    /**
+     * @var \Elastica\Type[]
+     */
+    protected $types = array();
     /**
      * @var \Elastica\Client
      */
@@ -31,6 +35,13 @@ class ElasticaAdaptor implements AdaptorInterface
      * @var DecoratorInterface
      */
     protected $decorator;
+    /**
+     * @var array Default options for creating a new index.
+     */
+    protected $defaultOptions = array(
+        'number_of_shards'   => 5,
+        'number_of_replicas' => 1,
+    );
 
     /**
      * @param DecoratorInterface $decorator
@@ -55,9 +66,7 @@ class ElasticaAdaptor implements AdaptorInterface
     public function registerDocument($indexName, $document, $identifier = '', $typeName = '')
     {
         $index = $this->getIndex($indexName);
-        $type = $index->getType(
-            empty($typeName) ? $this->typeName : $typeName
-        );
+        $type = $this->getOrCreateType($index, empty($typeName) ? $this->typeName : $typeName);
 
         try {
             $document = $this->transcodeDataToDocument($document, $identifier);
@@ -72,6 +81,75 @@ class ElasticaAdaptor implements AdaptorInterface
     }
 
     /**
+     * Returns a elastic search type for specified index and type name.
+     *
+     * If the type does not exist in the index, it will be created.
+     * Default options (like mapping) will be considered when creating a new type.
+     *
+     * @param  \Elastica\Index $index    Elasticsearch index to
+     * @param  string          $typeName Name of the type to get or create.
+     *
+     * @return \Elastica\Type
+     * @throws \InvalidArgumentException If type name is invalid.
+     */
+    protected function getOrCreateType(Index $index, $typeName)
+    {
+        Assertion::minLength($typeName, 1, 'Type name must be at least one char long');
+
+        if (!empty($this->types[$index->getName()][$typeName])) {
+            return $this->types[$index->getName()][$typeName];
+        }
+
+        if (!$this->typeExists($index, $typeName)) {
+            $this->createType($index, $typeName);
+        }
+
+        return $this->types[$index->getName()][$typeName] = $index->getType($typeName);
+    }
+
+    /**
+     * Returns true if specified type exists in the index, false otherwise.
+     *
+     * @param  \Elastica\Index $index    Elasticsearch index to
+     * @param  string          $typeName Name of the type to get or create.
+     *
+     * @return bool True if type exists, false otherwise.
+     * @throws \InvalidArgumentException If type name is invalid.
+     */
+    protected function typeExists(Index $index, $typeName)
+    {
+        Assertion::minLength($typeName, 1, 'Type name must be at least one char long');
+
+        // The index mapping contains a list of all registered types
+        $mapping = $index->getMapping();
+
+        return !empty($mapping[$index->getName()][$typeName]);
+    }
+
+    /**
+     * Creates a new type with specified name in specified index.
+     *
+     * Default options (like mapping) will be considered when creating a new type.
+     *
+     * @param  \Elastica\Index $index    Elasticsearch index to
+     * @param  string          $typeName Name of the type to get or create.
+     *
+     * @return void
+     * @throws \InvalidArgumentException If type name is invalid.
+     */
+    protected function createType(Index $index, $typeName)
+    {
+        Assertion::minLength($typeName, 1, 'Type name must be at least one char long');
+
+        $type = $index->getType($typeName);
+        $options = $this->mergeDefaultOptions();
+
+        if (!empty($options['mapping'])) {
+            $type->setMapping($options['mapping']);
+        }
+    }
+
+    /**
      * Provides an elasticsearch index to attach documents to.
      *
      * @param string     $indexName    Name of the lucene index
@@ -81,7 +159,7 @@ class ElasticaAdaptor implements AdaptorInterface
      *     if »array« it should b an associative array of options (option=>value).
      *     See linked web page.
      *
-     * @return \Elastica|Index
+     * @return \Elastica\Index
      * @link http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index.html
      */
     public function getIndex($indexName, array $indexOptions = array(), $specials = null)
@@ -130,12 +208,7 @@ class ElasticaAdaptor implements AdaptorInterface
      */
     protected function mergeDefaultOptions(array $options = array())
     {
-        $defaultOptions = array(
-            'number_of_shards'   => 5,
-            'number_of_replicas' => 1,
-        );
-
-        return array_merge($defaultOptions, $options);
+        return array_merge($this->defaultOptions, $options);
     }
 
     /**
@@ -429,5 +502,25 @@ class ElasticaAdaptor implements AdaptorInterface
         Assertion::notEmpty($typeName, 'Given name of the type to be used shall not be empty');
 
         $this->typeName = $typeName;
+    }
+
+    /**
+     * Sets default options to use when creating a new index.
+     *
+     * @param array $defaultOptions
+     */
+    public function addDefaultOption($key, $value)
+    {
+        $this->defaultOptions[$key] = $value;
+    }
+
+    /**
+     * Returns the default options which are used to create a new index.
+     *
+     * @return array Default options used to create a new index.
+     */
+    public function getDefaultOptions()
+    {
+        return $this->defaultOptions;
     }
 }

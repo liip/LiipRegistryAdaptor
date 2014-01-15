@@ -133,20 +133,11 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
             ->method('addDocuments')
             ->will($this->throwException(new InvalidException('Array has to consist of at least one element')));
 
-        $index = $this->getMockBuilder('\\Elastica\\Index')
-            ->disableOriginalConstructor()
-            ->setMethods(array('getType'))
-            ->getMock();
-        $index
-            ->expects($this->once())
-            ->method('getType')
-            ->will($this->returnValue($type));
-
         $adaptor = $this->getProxyBuilder('\\Liip\\Registry\\Adaptor\\Lucene\\ElasticaAdaptor')
             ->disableOriginalConstructor()
-            ->setProperties(array('indexes', 'decorator'))
+            ->setProperties(array('indexes', 'types', 'decorator'))
             ->getProxy();
-        $adaptor->indexes = array(strtolower(self::$indexName) => $index);
+        $adaptor->types = array(strtolower(self::$indexName) => array('collab'  => $type));
         $adaptor->decorator = new NoOpDecorator();
 
         $this->setExpectedException('\Liip\Registry\Adaptor\AdaptorException');
@@ -181,6 +172,112 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
         $this->assertInstanceOf(
             '\Elastica\Document',
             $adaptor->registerDocument(self::$indexName, array('Mascott' => 'Tux'))
+        );
+    }
+
+    /**
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getOrCreateType
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::createType
+     */
+    public function testRegisterDocumentTwiceWithSameType()
+    {
+        $newTypeName = 'some-type';
+        $adaptor = $this->getElasticaAdapter();
+
+        $adaptor->registerDocument(self::$indexName, array('Mascott' => 'Tux'), null, $newTypeName);
+        $adaptor->registerDocument(self::$indexName, array('Mascott' => 'Tux'), null, $newTypeName);
+
+        $this->assertInternalType('array', $adaptor->getIndex(self::$indexName)->getType($newTypeName)->getMapping());
+
+        $adaptor->deleteType(self::$indexName, $newTypeName);
+    }
+
+    /**
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getOrCreateType
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::createType
+     */
+    public function testRegisterDocumentAutoCreatesType()
+    {
+        $newTypeName = 'some-type-' . rand();
+        $adaptor = $this->getElasticaAdapter();
+        $adaptor->registerDocument(self::$indexName, array('Mascott' => 'Tux'), null, $newTypeName);
+
+        // Throws exception if type does not exist
+        $this->assertInternalType('array', $adaptor->getIndex(self::$indexName)->getType($newTypeName)->getMapping());
+
+        $adaptor->deleteType(self::$indexName, $newTypeName);
+    }
+
+    /**
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getOrCreateType
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::createType
+     */
+    public function testRegisterDocumentAutoCreatesTypeWithMapping()
+    {
+        $newTypeName = 'some-type-' . rand();
+        $adaptor = $this->getElasticaAdapter();
+        $adaptor->addDefaultOption('mapping', array('Mascott' => array('type' => 'string')));
+        $adaptor->registerDocument(self::$indexName, array('Mascott' => 'Tux'), null, $newTypeName);
+
+        // Throws exception if type does not exist
+        $this->assertInternalType('array', $adaptor->getIndex(self::$indexName)->getType($newTypeName)->getMapping());
+
+        $adaptor->deleteType(self::$indexName, $newTypeName);
+    }
+
+    /**
+     * @dataProvider typeExistsDataprovider
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::typeExists
+     */
+    public function testTypeExists($indexName, $typeName, $mapping, $expected)
+    {
+        $adaptor = $this->getProxyBuilder('\Liip\Registry\Adaptor\Lucene\ElasticaAdaptor')
+            ->disableOriginalConstructor()
+            ->setMethods(array('typeExists'))
+            ->getProxy();
+
+        $index = $this->getMockBuilder('\\Elastica\Index')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getName', 'getMapping'))
+            ->getMock();
+        $index
+            ->expects($this->once())
+            ->method('getName')
+            ->will($this->returnValue($indexName));
+        $index
+            ->expects($this->once())
+            ->method('getMapping')
+            ->will($this->returnValue($mapping));
+
+        $this->assertEquals($expected, $adaptor->typeExists($index, $typeName));
+    }
+    public static function typeExistsDataprovider()
+    {
+        return array(
+            'no mapping is defined' => array(
+                self::$indexName,
+                'some_type',
+                array(
+                    self::$indexName => array(
+                        'some_other_type' => array(
+                            'mapping' => array()
+                        )
+                    )
+                ),
+                false
+            ),
+            'mapping is defined' => array(
+                self::$indexName,
+                'some_type',
+                array(
+                    self::$indexName => array(
+                        'some_type' => array(
+                            'mapping' => array()
+                        )
+                    )
+                ),
+                true
+            ),
         );
     }
 
@@ -530,6 +627,33 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
                 )
             ),
         );
+    }
+
+    /**
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::addDefaultOption
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getDefaultOptions
+     */
+    public function testAddDefaultOption()
+    {
+        $adaptor = $this->getElasticaAdapter();
+        $adaptor->addDefaultOption('mapping', 'expected');
+
+        $options = $adaptor->getDefaultOptions();
+        $this->assertEquals('expected', $options['mapping'], 'Default option was not set correctly.');
+    }
+
+    /**
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::addDefaultOption
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getDefaultOptions
+     */
+    public function testAddDefaultOptionReplacesExisting()
+    {
+        $adaptor = $this->getElasticaAdapter();
+        $adaptor->addDefaultOption('mapping', 'some_value');
+        $adaptor->addDefaultOption('mapping', 'expected');
+
+        $options = $adaptor->getDefaultOptions();
+        $this->assertEquals('expected', $options['mapping'], 'Default option was not set correctly.');
     }
 
     /**
