@@ -25,7 +25,7 @@ Add the following lines to your `composer.json` file and update your project's c
 }
 ```
 
-This composer configuration will checkout the 'cutting eadge' version ('dev-master') of the project. Be alarmed that this might be broken sometimes.
+This composer configuration will checkout the 'cutting edge' version ('dev-master') of the project. Be warned that this might be broken sometimes.
 
 
 **NOTE:**
