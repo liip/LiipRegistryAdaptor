@@ -90,7 +90,7 @@ class ElasticaAdaptor implements AdaptorInterface
      * @param  string          $typeName Name of the type to get or create.
      *
      * @return \Elastica\Type
-     * @throws \InvalidArgumentException If type name is invalid.
+     * @throws \Assert\AssertionFailedException If type name is invalid.
      */
     protected function getOrCreateType(Index $index, $typeName)
     {
