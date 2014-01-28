@@ -53,11 +53,12 @@ interface AdaptorInterface
     /**
      * Provides a list of all documents of the given index.
      *
-     * @param mixed $index Name of the lucene index or an object representing a lucene index
+     * @param mixed   $index Name of the lucene index or an object representing a lucene index
+     * @param integer $limit Amount of result items to be returned. If set to 0 (zero) all documents of the result set will be returned. Defaults to 10.
      *
      * @return array
      */
-    public function getDocuments($index);
+    public function getDocuments($index, $limit = 10);
 
     /**
      * Provides an elasticsearch index to attach documents to.
