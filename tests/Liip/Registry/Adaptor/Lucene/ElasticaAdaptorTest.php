@@ -460,6 +460,35 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
     }
 
     /**
+     * @dataProvider limitSettingsProvider
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getDocuments
+     */
+    public function testGetDocumentsWithLimit($expected, $limit)
+    {
+        $adaptor = $this->getElasticaAdapter();
+        $adaptor->registerDocument(
+            self::$indexName,
+            array('tux' => 'devil'),
+            'toBeRetrieved'
+        );
+        $adaptor->registerDocument(
+            self::$indexName,
+            array('mascott' => 'Gnu'),
+            'toBeRetrieved2'
+        );
+
+        $this->assertCount($expected, $adaptor->getDocuments($adaptor->getIndex(self::$indexName), $limit));
+    }
+
+    public function limitSettingsProvider()
+    {
+        return array(
+            'just one document' => array(1, 1),
+            'all documents in index' => array(2, 0)
+        );
+    }
+
+    /**
      * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::removeDocuments
      */
     public function testRemoveDocuments()

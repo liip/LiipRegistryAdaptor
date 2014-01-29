@@ -16,6 +16,17 @@ use Liip\Registry\Adaptor\Decorator\DecoratorInterface;
 class ElasticaAdaptor implements AdaptorInterface
 {
     /**
+     * Since elasticasearch sets a default of 10 result items to be returned it is necessary in order to get
+     * all documents of the current search query to set this limit to a BIGNUMBER. BIGNUMBER is a synonym for any number
+     * higher than the amount of documents in the queried index.
+     *
+     * @link http://stackoverflow.com/questions/8829468/elastic-search-query-to-return-all-records
+     * @link https://groups.google.com/forum/#!topic/elastica-php-client/CsyrLJM1eLY
+     * @link http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-request-from-size.html
+     */
+    const ALL_DOCUMENTS = 100000000;
+
+    /**
      * @var \Elastica\Index[] Format [indexName => /Elastica/Index]
      */
     protected $indexes = array();
@@ -360,12 +371,12 @@ class ElasticaAdaptor implements AdaptorInterface
     /**
      * Provides a list of all documents of the given index.
      *
-     * @param \Elastica\Index $index
+     * @param \Elastica\Index $index Name of the lucene index or an object representing a lucene index.
+     * @param integer         $limit Amount of result items to be returned. If set to 0 (zero) all documents of the result set will be returned. Defaults to 10.
      *
      * @return array
-     * @throws \Assert\InvalidArgumentException
      */
-    public function getDocuments($index)
+    public function getDocuments($index, $limit = 10)
     {
         Assertion::isInstanceOf(
             $index,
@@ -373,10 +384,16 @@ class ElasticaAdaptor implements AdaptorInterface
             'The given index must be of type \Elastica\Index !'
         );
 
+        if (empty($limit)) {
+            $limit = self::ALL_DOCUMENTS;
+        }
+
         $search = new Search($index->getClient());
         $search->addIndex($index);
 
         $query = new Query(new MatchAll());
+        $query->setSize($limit);
+
         $resultSet = $search->search($query);
         $results = $resultSet->getResults();
 
@@ -507,7 +524,8 @@ class ElasticaAdaptor implements AdaptorInterface
     /**
      * Sets default options to use when creating a new index.
      *
-     * @param array $defaultOptions
+     * @param string $key
+     * @param mixed $value
      */
     public function addDefaultOption($key, $value)
     {
