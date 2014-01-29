@@ -524,7 +524,8 @@ class ElasticaAdaptor implements AdaptorInterface
     /**
      * Sets default options to use when creating a new index.
      *
-     * @param array $defaultOptions
+     * @param string $key
+     * @param mixed $value
      */
     public function addDefaultOption($key, $value)
     {
