@@ -3,11 +3,12 @@
 namespace Liip\Registry\Adaptor\Lucene;
 
 use Elastica\Client;
+use Elastica\Document;
 use Elastica\Exception\ClientException;
 use Elastica\Exception\InvalidException;
 use Elastica\Index;
-use Elastica\Result;
 use Elastica\Response;
+use Elastica\Result;
 use Liip\Registry\Adaptor\AdaptorException;
 use Liip\Registry\Adaptor\Decorator\NoOpDecorator;
 use Liip\Registry\Adaptor\Tests\Fixtures\Entity;
@@ -52,7 +53,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
         } catch (ClientException $e) {
             $this->markTestSkipped(
-                'The connection attemped to elasticsearch server failed. Error: '. $e->getMessage()
+                'The connection attemped to elasticsearch server failed. Error: ' . $e->getMessage()
             );
         }
     }
@@ -62,7 +63,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
      */
     public function tearDown()
     {
-        $client =  new Client();
+        $client = new Client();
         $index = new Index($client, self::$indexName);
 
         if ($index->exists()) {
@@ -137,7 +138,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
             ->disableOriginalConstructor()
             ->setProperties(array('indexes', 'types', 'decorator'))
             ->getProxy();
-        $adaptor->types = array(strtolower(self::$indexName) => array('collab'  => $type));
+        $adaptor->types = array(strtolower(self::$indexName) => array('collab' => $type));
         $adaptor->decorator = new NoOpDecorator();
 
         $this->setExpectedException('\Liip\Registry\Adaptor\AdaptorException');
@@ -173,6 +174,32 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
             '\Elastica\Document',
             $adaptor->registerDocument(self::$indexName, array('Mascott' => 'Tux'))
         );
+    }
+
+    /**
+     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::registerDocuments
+     */
+    public function testRegisterDocuments()
+    {
+        $adaptor = $this->getElasticaAdapter();
+
+        $content= array('Mascott' => 'Tux');
+
+        $id1 = 'Tux_' . microtime(true);
+        $doc1 = new Document($id1, $content);
+
+        $id2 = 'Linus_' . microtime(true);
+        $doc2 = new Document($id2, $content);
+
+        $adaptor->registerDocuments(
+            self::$indexName,
+            array($doc1, $doc2)
+        );
+
+        $this->assertEquals($content, $adaptor->getDocument($id1, self::$indexName));
+        $this->assertEquals($content, $adaptor->getDocument($id2, self::$indexName));
+
+        $adaptor->removeDocuments(array($id1, $id2), self::$indexName);
     }
 
     /**
@@ -227,7 +254,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
     /**
      * @dataProvider typeExistsDataprovider
-     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::typeExists
+     * @covers       \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::typeExists
      */
     public function testTypeExists($indexName, $typeName, $mapping, $expected)
     {
@@ -251,6 +278,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
         $this->assertEquals($expected, $adaptor->typeExists($index, $typeName));
     }
+
     public static function typeExistsDataprovider()
     {
         return array(
@@ -312,7 +340,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
     /**
      * @dataProvider updateDocumentDataprovider
-     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::updateDocument
+     * @covers       \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::updateDocument
      */
     public function testUpdateDocument($expected, $id, $registerData, $updateData)
     {
@@ -331,10 +359,11 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
         $this->assertEquals($expected, $updatedDocument->getData());
     }
+
     public static function updateDocumentDataprovider()
     {
         return array(
-            'valid array data adding fields'   => array(
+            'valid array data adding fields' => array(
                 array(
                     "food" => "Crisps",
                     "nearNonFood" => "Sponch",
@@ -347,7 +376,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
                     'nearNonFood' => 'Sponch'
                 ),
             ),
-            'valid array data overriding fields'   => array(
+            'valid array data overriding fields' => array(
                 array(
                     "Mascott" => "Linus",
                 ),
@@ -461,7 +490,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
     /**
      * @dataProvider limitSettingsProvider
-     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getDocuments
+     * @covers       \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::getDocuments
      */
     public function testGetDocumentsWithLimit($expected, $limit)
     {
@@ -530,7 +559,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
     /**
      * @dataProvider normalizeErrorDataprovider
-     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::normalizeError
+     * @covers       \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::normalizeError
      */
     public function testNormalizeError($error)
     {
@@ -541,6 +570,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
             $adaptor->normalizeError($error)
         );
     }
+
     public static function normalizeErrorDataprovider()
     {
         return array(
@@ -570,7 +600,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
     /**
      * @dataProvider extractDataDataprovider
-     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::extractData
+     * @covers       \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::extractData
      */
     public function testExtractData($expected, $value)
     {
@@ -581,6 +611,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
         $this->assertEquals($expected, $registry->extractData($value));
     }
+
     public static function extractDataDataprovider()
     {
         return array(
@@ -591,31 +622,31 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
                 ),
                 array(
                     0 => new Result(array(
-                        '_index' => 'registry_worlds',
-                        '_type' => 'collab',
-                        '_id' => 'WorldOfOs',
-                        '_score' => 1,
-                        '_source'=> array('mascott' => 'tux'),
-                    )),
+                            '_index' => 'registry_worlds',
+                            '_type' => 'collab',
+                            '_id' => 'WorldOfOs',
+                            '_score' => 1,
+                            '_source' => array('mascott' => 'tux'),
+                        )),
                     1 => new Result(array(
-                        '_index' => 'registry_worlds',
-                        '_type' => 'collab',
-                        '_id' => 'GuggiMenu',
-                        '_score' => 1,
-                        '_source'=> array('Dish Of Day' => 'Salmon al limone'),
-                    )),
+                            '_index' => 'registry_worlds',
+                            '_type' => 'collab',
+                            '_id' => 'GuggiMenu',
+                            '_score' => 1,
+                            '_source' => array('Dish Of Day' => 'Salmon al limone'),
+                        )),
                 )
             ),
             'Data of type string' => array(
                 array('WorldOfOs' => 'this is a string'),
                 array(
                     0 => new Result(array(
-                        '_index' => 'registry_worlds',
-                        '_type' => 'collab',
-                        '_id' => 'WorldOfOs',
-                        '_score' => 1,
-                        '_source'=> 'this is a string',
-                    )),
+                            '_index' => 'registry_worlds',
+                            '_type' => 'collab',
+                            '_id' => 'WorldOfOs',
+                            '_score' => 1,
+                            '_source' => 'this is a string',
+                        )),
                 )
             ),
         );
@@ -623,7 +654,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
     /**
      * @dataProvider mergeDefaultOptionsDataprovider
-     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::mergeDefaultOptions
+     * @covers       \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::mergeDefaultOptions
      */
     public function testMergeDefaultOptions($expected, $options)
     {
@@ -634,6 +665,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
         $this->assertEquals($expected, $adaptor->mergeDefaultOptions($options));
     }
+
     public function mergeDefaultOptionsDataprovider()
     {
         return array(
@@ -699,6 +731,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
         $this->assertEquals('Tux', $adaptor->getIndexType());
     }
+
     /**
      * @expectedException \Elastica\Exception\ResponseException
      * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::deleteType
@@ -806,7 +839,7 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
 
     /**
      * @dataProvider transcodeDataToDocumentDateprovider
-     * @covers \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::transcodeDataToDocument
+     * @covers       \Liip\Registry\Adaptor\Lucene\ElasticaAdaptor::transcodeDataToDocument
      */
     public function testTranscodeDataToDocument($expected, $field, $document)
     {

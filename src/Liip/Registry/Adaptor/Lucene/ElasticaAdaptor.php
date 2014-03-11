@@ -92,13 +92,37 @@ class ElasticaAdaptor implements AdaptorInterface
     }
 
     /**
+     * Adds a document to an index.
+     *
+     * @param string               $indexName
+     * @param \Elastica\Document[] $documents
+     * @param string               $typeName
+     *
+     * @throws \LogicException
+     * @throws \Liip\Registry\Adaptor\AdaptorException
+     */
+    public function registerDocuments($indexName, array $documents, $typeName = '')
+    {
+        $index = $this->getIndex($indexName);
+        $type = $this->getOrCreateType($index, empty($typeName) ? $this->typeName : $typeName);
+
+        try {
+            $type->addDocuments($documents);
+            $index->refresh();
+
+        } catch (InvalidException $e) {
+            throw new AdaptorException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
      * Returns a elastic search type for specified index and type name.
      *
      * If the type does not exist in the index, it will be created.
      * Default options (like mapping) will be considered when creating a new type.
      *
-     * @param  \Elastica\Index $index    Elasticsearch index to
-     * @param  string          $typeName Name of the type to get or create.
+     * @param \Elastica\Index $index    Elasticsearch index to
+     * @param string          $typeName Name of the type to get or create.
      *
      * @return \Elastica\Type
      * @throws \Assert\AssertionFailedException If type name is invalid.
@@ -121,8 +145,8 @@ class ElasticaAdaptor implements AdaptorInterface
     /**
      * Returns true if specified type exists in the index, false otherwise.
      *
-     * @param  \Elastica\Index $index    Elasticsearch index to
-     * @param  string          $typeName Name of the type to get or create.
+     * @param \Elastica\Index $index    Elasticsearch index to
+     * @param string          $typeName Name of the type to get or create.
      *
      * @return bool True if type exists, false otherwise.
      * @throws \InvalidArgumentException If type name is invalid.
@@ -142,8 +166,8 @@ class ElasticaAdaptor implements AdaptorInterface
      *
      * Default options (like mapping) will be considered when creating a new type.
      *
-     * @param  \Elastica\Index $index    Elasticsearch index to
-     * @param  string          $typeName Name of the type to get or create.
+     * @param \Elastica\Index $index    Elasticsearch index to
+     * @param string          $typeName Name of the type to get or create.
      *
      * @return void
      * @throws \InvalidArgumentException If type name is invalid.
@@ -228,7 +252,7 @@ class ElasticaAdaptor implements AdaptorInterface
      * @param mixed  $document
      * @param string $identifier
      *
-     * @return Document
+     * @return \Elastica\Document
      * @throws \LogicException
      */
     protected function transcodeDataToDocument($document, $identifier)
@@ -283,10 +307,10 @@ class ElasticaAdaptor implements AdaptorInterface
     /**
      * Updates a elsaticsearch document.
      *
-     * @param  integer|string $id        document id
-     * @param  mixed          $data      raw data for request body
-     * @param  string         $indexName index to update
-     * @param  string         $typeName  type of index to update
+     * @param integer|string $id        document id
+     * @param mixed          $data      raw data for request body
+     * @param string         $indexName index to update
+     * @param string         $typeName  type of index to update
      *
      * @throws AdaptorException in case something when wrong while sending the request to elasticsearch.
      * @return \Elastica\Document
@@ -411,7 +435,7 @@ class ElasticaAdaptor implements AdaptorInterface
     {
         $converted = array();
 
-        foreach($data as $value) {
+        foreach ($data as $value) {
 
             if ($value instanceof Result) {
 
@@ -525,7 +549,7 @@ class ElasticaAdaptor implements AdaptorInterface
      * Sets default options to use when creating a new index.
      *
      * @param string $key
-     * @param mixed $value
+     * @param mixed  $value
      */
     public function addDefaultOption($key, $value)
     {
