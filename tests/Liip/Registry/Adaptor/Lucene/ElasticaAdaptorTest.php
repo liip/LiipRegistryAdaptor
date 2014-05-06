@@ -870,4 +870,27 @@ class ElasticaAdaptorFunctionalTest extends RegistryTestCase
             'transcode stdClass' => array(array('Tux', 'Gnu'), 'osMascotts', $class),
         );
     }
+
+    public function testMappingWithSource()
+    {
+        $newTypeName = 'some-type-mapping-' . rand();
+        $expected[$newTypeName] = array(
+            '_source' => array(
+                'excludes' => array('Mascott'),
+            ),
+            'properties' => array(
+                'Mascott' => array('type' => 'string'),
+            ),
+        );
+        $adaptor = $this->getElasticaAdapter();
+        $adaptor->addDefaultOption('mapping', array('Mascott' => array('type' => 'string')));
+        $adaptor->addDefaultOption('_source', array('excludes' => array('Mascott')));
+        $adaptor->registerDocument(self::$indexName, array('Mascott' => 'Tux'), null, $newTypeName);
+
+        // Throws exception if type does not exist
+        $mapping = $adaptor->getIndex(self::$indexName)->getType($newTypeName)->getMapping();
+        $this->assertEquals($expected, $mapping);
+
+        $adaptor->deleteType(self::$indexName, $newTypeName);
+    }
 }
