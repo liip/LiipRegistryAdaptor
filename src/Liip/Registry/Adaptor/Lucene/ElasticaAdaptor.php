@@ -10,6 +10,7 @@ use Elastica\Query;
 use Elastica\Query\MatchAll;
 use Elastica\Result;
 use Elastica\Search;
+use Elastica\Type\Mapping;
 use Liip\Registry\Adaptor\AdaptorException;
 use Liip\Registry\Adaptor\Decorator\DecoratorInterface;
 
@@ -179,8 +180,15 @@ class ElasticaAdaptor implements AdaptorInterface
         $type = $index->getType($typeName);
         $options = $this->mergeDefaultOptions();
 
+        $mappingObject = new Mapping();
         if (!empty($options['mapping'])) {
-            $type->setMapping($options['mapping']);
+            $mappingObject->setProperties($options['mapping']);
+        }
+        if (!empty($options['_source'])) {
+            $mappingObject->setSource($options['_source']);
+        }
+        if (!empty($options['mapping']) || !empty($options['_source'])) {
+            $type->setMapping($mappingObject);
         }
     }
 
