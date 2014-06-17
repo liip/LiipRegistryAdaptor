@@ -205,7 +205,7 @@ class ElasticaAdaptor implements AdaptorInterface
      * @return \Elastica\Index
      * @link http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index.html
      */
-    public function getIndex($indexName, array $indexOptions = array(), $specials = null)
+    public function getIndex($indexName, array $indexOptions = array(), $specials = null, $createIndex = true)
     {
         $indexName = strtolower($indexName);
 
@@ -214,8 +214,7 @@ class ElasticaAdaptor implements AdaptorInterface
             $client = $this->getClient();
             $this->indexes[$indexName] = $client->getIndex($indexName);
 
-            if (!$this->indexes[$indexName]->exists()) {
-
+            if ($createIndex && !$this->indexes[$indexName]->exists()) {
                 $this->indexes[$indexName]->create(
                     $this->mergeDefaultOptions($indexOptions),
                     $specials
@@ -390,7 +389,7 @@ class ElasticaAdaptor implements AdaptorInterface
      */
     public function getDocument($id, $indexName, $typeName = '')
     {
-        $index = $this->getIndex($indexName);
+        $index = $this->getIndex($indexName, array(), null, false);
         $type = $index->getType(
             empty($typeName) ? $this->typeName : $typeName
         );
