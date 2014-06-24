@@ -309,7 +309,12 @@ class ElasticaAdaptor implements AdaptorInterface
         }
 
         $client = $this->getClient();
+        $index = $client->getIndex($index);
+
         $client->deleteIds($ids, $index, $type);
+
+        // Refresh index because bulk deletions are slow
+        $index->refresh();
     }
 
     /**
