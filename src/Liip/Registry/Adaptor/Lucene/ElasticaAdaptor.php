@@ -313,7 +313,7 @@ class ElasticaAdaptor implements AdaptorInterface
 
         $client->deleteIds($ids, $index, $type);
 
-        // Refresh elastic search because bulk deletions are slow
+        // Refresh index because bulk deletions are slow
         $index->refresh();
     }
 
