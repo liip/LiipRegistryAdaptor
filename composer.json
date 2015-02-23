@@ -31,7 +31,7 @@
     "require": {
         "php": ">=5.3.8",
         "beberlei/assert": "~1.5",
-        "ruflin/elastica": "v1.4.3.0"
+        "ruflin/elastica": "1.4.0.x-dev"
     },
     "require-dev": {
         "lapistano/proxy-object": "dev-master"
