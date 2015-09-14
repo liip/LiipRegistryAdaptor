@@ -84,6 +84,7 @@ class ElasticaAdaptor implements AdaptorInterface
             $document = $this->transcodeDataToDocument($document, $identifier);
             $type->addDocuments(array($document));
             $index->refresh();
+            $index->optimize();
 
         } catch (InvalidException $e) {
             throw new AdaptorException($e->getMessage(), $e->getCode(), $e);
@@ -110,6 +111,7 @@ class ElasticaAdaptor implements AdaptorInterface
         try {
             $type->addDocuments($documents);
             $index->refresh();
+            $index->optimize();
 
         } catch (InvalidException $e) {
             throw new AdaptorException($e->getMessage(), $e->getCode(), $e);
@@ -315,6 +317,7 @@ class ElasticaAdaptor implements AdaptorInterface
 
         // Refresh index because bulk deletions are slow
         $index->refresh();
+        $index->optimize();
     }
 
     /**
@@ -360,7 +363,9 @@ class ElasticaAdaptor implements AdaptorInterface
             );
         }
 
-        $type->getIndex()->refresh();
+        $index->refresh();
+        $index->optimize();
+
 
         return $type->getDocument($id);
     }
